@@ -42,7 +42,7 @@ export function FilterSidebar({
     <div className="space-y-6">
       {categories.length > 0 && (
         <Card className="p-4">
-          <h3 className="mb-4 font-semibold">Categories</h3>
+          <h3 className="mb-4 font-semibold">카테고리</h3>
           <div className="space-y-2">
             {categories.map(category => (
               <label
@@ -71,7 +71,7 @@ export function FilterSidebar({
 
       {priceRanges.length > 0 && (
         <Card className="p-4">
-          <h3 className="mb-4 font-semibold">Price Range</h3>
+          <h3 className="mb-4 font-semibold">가격대</h3>
           <div className="space-y-2">
             {priceRanges.map(range => (
               <label
@@ -102,7 +102,7 @@ export function FilterSidebar({
             onPriceChange?.('');
           }}
         >
-          Clear Filters
+          필터 초기화
         </Button>
       )}
     </div>

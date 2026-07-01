@@ -47,10 +47,9 @@ export function ProductGrid({ products, className }: ProductGridProps) {
             />
           </svg>
         </div>
-        <h3 className="mb-2 text-lg font-semibold">No products found</h3>
+        <h3 className="mb-2 text-lg font-semibold">상품이 없습니다</h3>
         <p className="max-w-sm text-muted-foreground">
-          We couldn't find any products matching your criteria. Try adjusting
-          your filters or search terms.
+          조건에 맞는 상품을 찾지 못했습니다. 필터나 검색어를 변경해 보세요.
         </p>
       </div>
     );
@@ -130,11 +129,10 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
       <div className="container">
         <div className="mb-8 text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight">
-            Featured Products
+            추천 상품
           </h2>
           <p className="mx-auto max-w-2xl text-muted-foreground">
-            Discover our handpicked selection of the most popular and
-            highly-rated products.
+            인기 있고 평점 높은 상품을 엄선해 모았습니다.
           </p>
         </div>
 
@@ -146,7 +144,7 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
               href="/products"
               className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
             >
-              View All Products
+              전체 상품 보기
             </Link>
           </div>
         )}

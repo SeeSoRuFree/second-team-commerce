@@ -1,231 +1,86 @@
-# Next.js E-Commerce Platform 🛍️
+# 세컨팀 커머스 (교육용 쇼핑몰 베이스)
 
-[![Next.js](https://img.shields.io/badge/Next.js_15.5-000?logo=next.js&logoColor=fff)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript_5.9-3178C6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma_5.22-2D3748?logo=prisma&logoColor=fff)](https://www.prisma.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+AI 에이전트 실습을 위한 **한국식 커머스 베이스 쇼핑몰**입니다.
+Next.js 15 + Prisma + SQLite 기반이라 별도 DB 설치(PostgreSQL/Docker)나 외부 계정 없이
+**clone → 설치 → 실행** 3단계로 바로 뜹니다. 이 코드 위에 AI 에이전트 기능(상품등록 자동화,
+추천·상담 챗봇, CS 멀티에이전트 등)을 붙여 나가는 것이 목표입니다.
 
-> **🎓 Demo & Learning Project**  
-> A full-stack e-commerce platform built to demonstrate modern Next.js development patterns with TypeScript, Prisma, and PostgreSQL. Not intended for production use.
+## 필요 환경
+- **Node.js 18 이상** (권장 20)
+- npm
 
-## ✨ What's Inside
-
-**Core Features**
-- 🛍️ Product catalog with search, filtering & categories
-- 🛒 Shopping cart with persistent storage
-- 📧 Newsletter subscription with validation
-- 🎨 Custom 404 page with demo messaging
-- 👤 User authentication with NextAuth.js
-- 💳 Stripe payment integration (configured)
-- 📊 Admin dashboard for product & order management
-
-**Tech Stack**
-- **Frontend:** Next.js 15.5.6 | React 18 | TypeScript 5.9  | Tailwind CSS | shadcn/ui
-- **Backend:** Server Components | Server Actions | API Routes
-- **Database:** PostgreSQL 15 | Prisma 5.22 ORM
-- **Testing:** Jest | React Testing Library | Cypress
-
-**Current Status (March 2026)**
-- ✅ All TypeScript checks passing
-- ✅ All ESLint checks passing  
-- ✅ 149/149 tests passing (100%)
-- ✅ Newsletter feature fully functional
-- ✅ Local SVG product images
-- ✅ Database migrations applied
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 20+ 
-- PostgreSQL 15+
-- npm or yarn
-
-### Installation
+## 빠른 시작 (5분)
 
 ```bash
-# Clone the repository
-git clone https://github.com/SatvikPraveen/Nextjs-Ecommerce.git
-cd Nextjs-Ecommerce
+# 1) 클론 후 이동
+git clone <이-저장소-주소> second-team-commerce
+cd second-team-commerce
 
-# Install dependencies
+# 2) 패키지 설치
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your database URL and API keys
+# 3) 환경변수 파일 준비 (그대로 복사하면 바로 실행됩니다)
+cp .env.example .env
 
-# Set up database
-npx prisma db push
-npm run db:seed
+# 4) 데이터베이스 생성 + 샘플 데이터 넣기
+npm run db:push      # SQLite DB(prisma/dev.db) 생성
+npm run db:seed      # 상품·카테고리·주문·리뷰·문의 샘플 삽입
 
-# Start development server
+# 5) 개발 서버 실행
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+브라우저에서 **http://localhost:3000** 접속.
 
-### Essential Environment Variables
+> `.env.example`에는 SQLite 경로와 토스페이먼츠 **테스트 키**가 기본값으로 들어있어,
+> 복사만 하면 추가 설정 없이 실행됩니다.
+>
+> 교육 현장에서는 포트를 바꿔 실행하기도 합니다: `npm run dev -- -p 2444`
+> (이때 `.env`의 `NEXTAUTH_URL`·`NEXT_PUBLIC_APP_URL`도 같은 포트로 맞추세요.)
 
-```env
-# Database (Required)
-DATABASE_URL="postgresql://user:password@localhost:5432/ecommerce"
+## 로그인 계정 (샘플)
+| 구분 | 이메일 | 비밀번호 |
+|------|--------|----------|
+| 관리자 | `admin@example.com` | `admin123` |
+| 고객 | `customer@example.com` | `customer123` |
 
-# NextAuth (Required)
-NEXTAUTH_SECRET="your-secret-here"
-NEXTAUTH_URL="http://localhost:3000"
+- 관리자로 로그인하면 헤더에 **관리자** 링크가 뜹니다 (`/admin`).
+- 회원가입도 됩니다 (`/auth/signup`).
 
-# Stripe (Optional - for payments)
-STRIPE_PUBLISHABLE_KEY="pk_test_..."
-STRIPE_SECRET_KEY="sk_test_..."
-```
+## 주요 기능
+- **상품**: 목록/상세, 카테고리, 검색, 리뷰·문의(Q&A) 게시판
+- **장바구니 · 주문**: DB 기반 장바구니, 바로구매, 한국식 주문상태(입금대기→배송준비중→배송중→배송완료)
+- **결제**: 토스페이먼츠 결제위젯(테스트) — 실제 차감 없이 결제 흐름 실습
+- **배송지**: 카카오 우편번호 검색(도로명주소), 조건부 무료배송(5만원↑)
+- **관리자**: 상품/주문/재고/문의 관리 (한글)
 
-See [.env.example](.env.example) for complete configuration.
+## 결제 · 주소 검색 (외부 서비스)
+- **토스페이먼츠**: `.env.example`에 토스가 공개한 **테스트 키**가 들어있어 그대로 실습 가능합니다.
+  결제창에서 카드번호를 넣어도 실제 결제는 되지 않습니다. 운영 시
+  [토스페이먼츠 개발자센터](https://developers.tosspayments.com)에서 발급한 키로 교체하세요.
+- **카카오 우편번호**: 무료 공개 서비스라 API 키가 필요 없습니다.
 
-## 📁 Project Structure
+## 자주 쓰는 명령어
+| 명령 | 설명 |
+|------|------|
+| `npm run dev` | 개발 서버 |
+| `npm run db:push` | 스키마를 DB에 반영 |
+| `npm run db:seed` | 샘플 데이터 삽입 |
+| `npm run db:studio` | Prisma Studio(DB 뷰어) |
+| `npm run build` | 프로덕션 빌드 |
+| `npm run type-check` | 타입 검사 |
 
-```
-app/
-├── (store)/          # Customer-facing pages
-│   ├── products/     # Product catalog
-│   ├── cart/         # Shopping cart
-│   └── search/       # Search results
-├── (account)/        # User account pages
-├── admin/            # Admin dashboard
-├── api/              # API routes
-│   ├── newsletter/   # Newsletter subscription
-│   ├── stripe/       # Payment webhooks
-│   └── auth/         # Authentication
-└── not-found.tsx     # Custom 404 page
-
-components/
-├── ui/               # shadcn/ui components
-├── newsletter-form.tsx
-├── product-card.tsx
-└── cart-drawer.tsx
-
-server/
-├── actions/          # Server actions
-└── queries/          # Database queries
-
-prisma/
-├── schema.prisma     # Database schema
-└── seed.ts           # Sample data
-```
-
-## 🛠️ Scripts
-
+## 데이터 초기화
+데이터가 꼬였을 때는 DB 파일을 지우고 다시 만들면 됩니다.
 ```bash
-# Development
-npm run dev           # Start dev server
-npm run build         # Build for production
-npm run start         # Start production server
-
-# Database
-npm run db:push       # Push schema changes
-npm run db:seed       # Seed with sample data
-npm run db:studio     # Open Prisma Studio
-
-# Code Quality
-npm run lint          # Run ESLint
-npm run type-check    # TypeScript type check
-npm run format        # Format with Prettier
-
-# Testing
-npm run test          # Run all tests
-npm run test:e2e      # Run Cypress tests
+rm -f prisma/dev.db
+npm run db:push && npm run db:seed
 ```
 
-## 📚 Documentation
-
-| Guide | Description |
-|-------|-------------|
-| [Quick Start](QUICKSTART.md) | Get running in 5 minutes |
-| [Dev Setup](docs/setup/DEV_SETUP.md) | Complete development environment setup |
-| [Installation](docs/setup/INSTALLATION.md) | Automated environment setup script |
-| [Contributing](docs/contributing/CONTRIBUTING.md) | How to contribute |
-| [Cheat Sheet](docs/contributing/CHEAT_SHEET.md) | Quick command reference |
-| [Project Structure](docs/project/PROJECT_STRUCTURE.md) | Detailed code organization |
-| [Roadmap](docs/project/ROADMAP.md) | Future plans |
-| [Docs Index](docs/DOCS_INDEX.md) | Complete documentation index |
-
-## 🎯 Recent Updates
-
-**March 2026**
-- ✅ Newsletter subscription system with database persistence
-- ✅ Custom 404 page for demo project
-- ✅ 14 local SVG product & category images
-- ✅ Fixed client component directives
-- ✅ Repository documentation reorganized
-- ✅ Footer updated to 2026
-
-**December 2025**
-- ✅ Next.js 15.5.6 upgrade
-- ✅ TypeScript strict mode - 0 errors
-- ✅ All tests passing (149/149)
-- ✅ npm audit: 0 vulnerabilities
-- ✅ Prettier formatting applied
-
-## 🔐 Authentication
-
-Supported providers:
-- Email/Password
-- Google OAuth
-- GitHub OAuth
-- Discord OAuth
-
-Role-based access control for admin features.
-
-## 💳 Payments
-
-Stripe integration configured for:
-- Checkout sessions
-- Payment webhooks
-- Order fulfillment
-- Multi-currency support
-
-## 🐳 Deployment
-
-**Vercel** (Recommended)
-```bash
-# Connect your GitHub repo to Vercel
-# Add environment variables in dashboard
-# Deploy automatically on push
-```
-
-**Docker**
-```bash
-docker-compose up -d
-```
-
-Or build manually:
-```bash
-docker build -t nextjs-ecommerce .
-docker run -p 3000:3000 -e DATABASE_URL="..." nextjs-ecommerce
-```
-
-## 🤝 Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](docs/contributing/CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-Built with:
-- [Next.js](https://nextjs.org/)
-- [Prisma](https://www.prisma.io/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [TypeScript](https://www.typescriptlang.org/)
+## 기술 스택
+Next.js 15 (App Router) · React · TypeScript · Prisma · **SQLite** · NextAuth · Tailwind CSS ·
+토스페이먼츠 SDK · 카카오 우편번호
 
 ---
-
-**Note:** This is a demonstration project for learning purposes. For production use, additional security hardening, comprehensive testing, and infrastructure setup would be required.
+교육용 프로젝트입니다. 실제 서비스 운영을 위해서는 DB(PostgreSQL 등)·결제(실 PG 계약)·보안
+설정을 별도로 갖춰야 합니다.

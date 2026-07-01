@@ -32,10 +32,10 @@ export default async function ProfilePage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              My Profile
+              내 정보
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Manage your account settings and personal information
+              계정 설정과 개인정보를 관리하세요
             </p>
           </div>
           <Badge variant="default">{session.user.email}</Badge>
@@ -44,17 +44,17 @@ export default async function ProfilePage() {
 
       <Tabs defaultValue="personal" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="personal">Personal Info</TabsTrigger>
-          <TabsTrigger value="addresses">Addresses</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          <TabsTrigger value="personal">기본정보</TabsTrigger>
+          <TabsTrigger value="addresses">배송지</TabsTrigger>
+          <TabsTrigger value="security">보안</TabsTrigger>
+          <TabsTrigger value="preferences">알림설정</TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal" className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium">Personal Information</h3>
+            <h3 className="text-lg font-medium">기본정보</h3>
             <p className="text-sm text-muted-foreground">
-              Update your personal details and contact information.
+              회원 정보와 연락처를 수정할 수 있습니다.
             </p>
           </div>
           <Separator />
@@ -63,9 +63,9 @@ export default async function ProfilePage() {
 
         <TabsContent value="addresses" className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium">Address Book</h3>
+            <h3 className="text-lg font-medium">배송지 관리</h3>
             <p className="text-sm text-muted-foreground">
-              Manage your shipping and billing addresses.
+              배송지를 추가하고 관리할 수 있습니다.
             </p>
           </div>
           <Separator />
@@ -74,9 +74,9 @@ export default async function ProfilePage() {
 
         <TabsContent value="security" className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium">Security Settings</h3>
+            <h3 className="text-lg font-medium">보안 설정</h3>
             <p className="text-sm text-muted-foreground">
-              Update your password and security preferences.
+              비밀번호와 보안 설정을 변경할 수 있습니다.
             </p>
           </div>
           <Separator />
@@ -85,53 +85,53 @@ export default async function ProfilePage() {
 
         <TabsContent value="preferences" className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium">Account Preferences</h3>
+            <h3 className="text-lg font-medium">알림 설정</h3>
             <p className="text-sm text-muted-foreground">
-              Manage your notification and privacy settings.
+              알림과 개인정보 수신 설정을 관리할 수 있습니다.
             </p>
           </div>
           <Separator />
           <div className="space-y-6">
             <div className="space-y-4">
-              <h4 className="text-base font-medium">Email Notifications</h4>
+              <h4 className="text-base font-medium">이메일 알림</h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Order Updates</p>
+                    <p className="font-medium">주문 알림</p>
                     <p className="text-sm text-muted-foreground">
-                      Receive emails about your order status
+                      주문 상태에 대한 이메일을 받습니다
                     </p>
                   </div>
                   <input
                     type="checkbox"
-                    title="Order Updates"
+                    title="주문 알림"
                     defaultChecked
                     className="rounded"
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Marketing Emails</p>
+                    <p className="font-medium">마케팅 이메일</p>
                     <p className="text-sm text-muted-foreground">
-                      Receive promotional offers and news
+                      프로모션과 새 소식을 받습니다
                     </p>
                   </div>
                   <input
                     type="checkbox"
-                    title="Marketing Emails"
+                    title="마케팅 이메일"
                     className="rounded"
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Product Updates</p>
+                    <p className="font-medium">신상품 알림</p>
                     <p className="text-sm text-muted-foreground">
-                      Get notified about new products
+                      새로 입고된 상품 소식을 받습니다
                     </p>
                   </div>
                   <input
                     type="checkbox"
-                    title="Product Updates"
+                    title="신상품 알림"
                     className="rounded"
                   />
                 </div>

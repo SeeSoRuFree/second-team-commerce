@@ -118,13 +118,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
             <li>
               <Link href="/" className="hover:text-foreground">
-                Home
+                홈
               </Link>
             </li>
             <li>/</li>
             <li>
               <Link href="/products" className="hover:text-foreground">
-                Products
+                전체상품
               </Link>
             </li>
             <li>/</li>
@@ -194,7 +194,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {averageRating} ({totalReviews} reviews)
+                  {averageRating} (후기 {totalReviews}개)
                 </span>
               </div>
             </div>
@@ -212,13 +212,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
               {product.comparePrice && (
                 <Badge variant="secondary">
-                  Save{' '}
                   {Math.round(
                     ((Number(product.comparePrice) - Number(product.price)) /
                       Number(product.comparePrice)) *
                       100
                   )}
-                  %
+                  % 할인
                 </Badge>
               )}
             </div>
@@ -227,7 +226,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <Badge variant="default">In Stock</Badge>
+                <Badge variant="default">재고 있음</Badge>
                 {product.sku && (
                   <span className="text-sm text-muted-foreground">
                     SKU: {product.sku}
@@ -244,11 +243,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="flex space-x-2">
                 <Button variant="outline" size="sm">
                   <Heart className="mr-2 h-4 w-4" />
-                  Add to Wishlist
+                  찜하기
                 </Button>
                 <Button variant="outline" size="sm">
                   <Share2 className="mr-2 h-4 w-4" />
-                  Share
+                  공유
                 </Button>
               </div>
             </div>
@@ -259,20 +258,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <Truck className="mx-auto h-8 w-8 text-blue-600" />
-                <p className="mt-2 text-sm font-medium">Free Shipping</p>
+                <p className="mt-2 text-sm font-medium">무료배송</p>
                 <p className="text-xs text-muted-foreground">
-                  On orders over $100
+                  5만원 이상 구매 시
                 </p>
               </div>
               <div>
                 <Shield className="mx-auto h-8 w-8 text-green-600" />
-                <p className="mt-2 text-sm font-medium">Secure Payment</p>
-                <p className="text-xs text-muted-foreground">100% protected</p>
+                <p className="mt-2 text-sm font-medium">안전결제</p>
+                <p className="text-xs text-muted-foreground">100% 보호</p>
               </div>
               <div>
                 <RotateCcw className="mx-auto h-8 w-8 text-purple-600" />
-                <p className="mt-2 text-sm font-medium">Easy Returns</p>
-                <p className="text-xs text-muted-foreground">30-day policy</p>
+                <p className="mt-2 text-sm font-medium">간편 교환·반품</p>
+                <p className="text-xs text-muted-foreground">7일 이내 가능</p>
               </div>
             </div>
           </div>

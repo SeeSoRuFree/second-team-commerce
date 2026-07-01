@@ -55,78 +55,64 @@ export function AddressBook() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Saved Addresses</h3>
+        <h3 className="text-lg font-semibold">배송지 목록</h3>
         <Button onClick={() => setShowForm(!showForm)} variant="outline">
-          {showForm ? 'Cancel' : 'Add Address'}
+          {showForm ? '취소' : '배송지 추가'}
         </Button>
       </div>
 
       {showForm && (
         <div className="space-y-3 rounded-lg border p-4">
           <div>
-            <Label>Address Name</Label>
+            <Label>배송지 이름</Label>
             <Input
-              placeholder="Home, Office, etc."
+              placeholder="집, 회사 등"
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
           <div>
-            <Label>Street Address</Label>
+            <Label>수령인</Label>
             <Input
-              placeholder="123 Main St"
+              placeholder="받으실 분 성함"
+              value={formData.city}
+              onChange={e =>
+                setFormData({ ...formData, city: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <Label>우편번호</Label>
+            <Input
+              placeholder="12345"
+              value={formData.state}
+              onChange={e =>
+                setFormData({ ...formData, state: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <Label>도로명주소</Label>
+            <Input
+              placeholder="도로명주소를 입력하세요"
               value={formData.address}
               onChange={e =>
                 setFormData({ ...formData, address: e.target.value })
               }
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label>City</Label>
-              <Input
-                placeholder="City"
-                value={formData.city}
-                onChange={e =>
-                  setFormData({ ...formData, city: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label>State</Label>
-              <Input
-                placeholder="CA"
-                value={formData.state}
-                onChange={e =>
-                  setFormData({ ...formData, state: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label>ZIP Code</Label>
-              <Input
-                placeholder="90210"
-                value={formData.zip}
-                onChange={e =>
-                  setFormData({ ...formData, zip: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label>Country</Label>
-              <Input
-                placeholder="US"
-                value={formData.country}
-                onChange={e =>
-                  setFormData({ ...formData, country: e.target.value })
-                }
-              />
-            </div>
+          <div>
+            <Label>상세주소</Label>
+            <Input
+              placeholder="상세주소를 입력하세요"
+              value={formData.zip}
+              onChange={e =>
+                setFormData({ ...formData, zip: e.target.value })
+              }
+            />
           </div>
           <Button onClick={handleAddAddress} className="w-full">
-            Save Address
+            배송지 저장
           </Button>
         </div>
       )}
@@ -134,15 +120,17 @@ export function AddressBook() {
       <div className="space-y-2">
         {addresses.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No addresses saved yet
+            저장된 배송지가 없습니다
           </p>
         ) : (
           addresses.map(addr => (
             <div key={addr.id} className="rounded-lg border p-3">
               <p className="font-medium">{addr.name}</p>
-              <p className="text-sm text-muted-foreground">{addr.address}</p>
               <p className="text-sm text-muted-foreground">
-                {addr.city}, {addr.state} {addr.zip}
+                [{addr.state}] {addr.address} {addr.zip}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                수령인 {addr.city}
               </p>
             </div>
           ))

@@ -65,7 +65,7 @@ async function CategoryProductCount({ categoryId }: { categoryId: string }) {
 
   return (
     <Badge variant="secondary" className="ml-4">
-      {result.total || 0} products
+      상품 {result.total || 0}개
     </Badge>
   );
 }
@@ -99,10 +99,10 @@ async function CategoryProducts({
     return (
       <div className="py-12 text-center">
         <p className="text-lg text-muted-foreground">
-          No products found in this category.
+          이 카테고리에 상품이 없습니다.
         </p>
         <Button asChild className="mt-4">
-          <Link href="/products">Browse All Products</Link>
+          <Link href="/products">전체 상품 보기</Link>
         </Button>
       </div>
     );
@@ -112,8 +112,8 @@ async function CategoryProducts({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {(page - 1) * 12 + 1}-{Math.min(page * 12, result.total)} of{' '}
-          {result.total} products
+          전체 {result.total}개 중 {(page - 1) * 12 + 1}-
+          {Math.min(page * 12, result.total)}개 표시
         </p>
         <SortSelect />
       </div>
@@ -131,7 +131,7 @@ async function CategoryProducts({
                   page: (page - 1).toString(),
                 })}`}
               >
-                Previous
+                이전
               </Link>
             </Button>
           )}
@@ -169,7 +169,7 @@ async function CategoryProducts({
                   page: (page + 1).toString(),
                 })}`}
               >
-                Next
+                다음
               </Link>
             </Button>
           )}
@@ -201,13 +201,13 @@ export default async function CategoryPage({
         <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
           <li>
             <Link href="/" className="hover:text-foreground">
-              Home
+              홈
             </Link>
           </li>
           <li>/</li>
           <li>
             <Link href="/products" className="hover:text-foreground">
-              Products
+              전체상품
             </Link>
           </li>
           <li>/</li>
@@ -231,7 +231,7 @@ export default async function CategoryPage({
           <Suspense
             fallback={
               <Badge variant="secondary" className="ml-4">
-                Loading...
+                로딩 중...
               </Badge>
             }
           >

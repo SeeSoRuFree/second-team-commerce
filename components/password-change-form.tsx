@@ -16,12 +16,14 @@ export function PasswordChangeForm() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const newPassword = watch('newPassword');
 
   const onSubmit = async (data: any) => {
     if (data.newPassword !== data.confirmPassword) {
-      setMessage('Passwords do not match');
+      setIsSuccess(false);
+      setMessage('비밀번호가 일치하지 않습니다');
       return;
     }
 
@@ -37,13 +39,16 @@ export function PasswordChangeForm() {
       });
 
       if (response.ok) {
-        setMessage('Password updated successfully');
+        setIsSuccess(true);
+        setMessage('비밀번호가 변경되었습니다');
         reset();
       } else {
-        setMessage('Failed to update password');
+        setIsSuccess(false);
+        setMessage('비밀번호 변경에 실패했습니다');
       }
     } catch (error) {
-      setMessage('Error updating password');
+      setIsSuccess(false);
+      setMessage('비밀번호 변경 중 오류가 발생했습니다');
       console.error(error);
     } finally {
       setLoading(false);
@@ -53,38 +58,38 @@ export function PasswordChangeForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="currentPassword">Current Password</Label>
+        <Label htmlFor="currentPassword">현재 비밀번호</Label>
         <Input
           {...register('currentPassword')}
           type="password"
-          placeholder="Enter current password"
+          placeholder="현재 비밀번호를 입력하세요"
         />
       </div>
       <div>
-        <Label htmlFor="newPassword">New Password</Label>
+        <Label htmlFor="newPassword">새 비밀번호</Label>
         <Input
           {...register('newPassword')}
           type="password"
-          placeholder="Enter new password"
+          placeholder="새 비밀번호를 입력하세요"
         />
       </div>
       <div>
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Label htmlFor="confirmPassword">새 비밀번호 확인</Label>
         <Input
           {...register('confirmPassword')}
           type="password"
-          placeholder="Confirm new password"
+          placeholder="새 비밀번호를 다시 입력하세요"
         />
       </div>
       {message && (
         <p
-          className={`text-sm ${message.includes('success') ? 'text-green-600' : 'text-red-600'}`}
+          className={`text-sm ${isSuccess ? 'text-green-600' : 'text-red-600'}`}
         >
           {message}
         </p>
       )}
       <Button type="submit" disabled={loading}>
-        {loading ? 'Updating...' : 'Update Password'}
+        {loading ? '변경 중...' : '비밀번호 변경'}
       </Button>
     </form>
   );

@@ -31,13 +31,13 @@ export default function CartPage() {
       await updateCartItem(itemId, formData);
       updateItem(itemId, newQuantity);
       toast({
-        title: 'Cart updated',
-        description: 'Item quantity has been updated.',
+        title: '장바구니 수정됨',
+        description: '수량이 변경되었습니다.',
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to update cart item.',
+        title: '오류',
+        description: '수량 변경에 실패했습니다.',
       });
     } finally {
       setIsUpdating(null);
@@ -52,13 +52,13 @@ export default function CartPage() {
       await removeFromCart(formData);
       removeItem(itemId);
       toast({
-        title: 'Item removed',
-        description: 'Item has been removed from your cart.',
+        title: '상품 삭제됨',
+        description: '장바구니에서 상품이 삭제되었습니다.',
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to remove item from cart.',
+        title: '오류',
+        description: '상품 삭제에 실패했습니다.',
       });
     } finally {
       setIsUpdating(null);
@@ -75,19 +75,19 @@ export default function CartPage() {
         <div className="text-center">
           <ShoppingBag className="mx-auto h-24 w-24 text-muted-foreground" />
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900">
-            Your cart is empty
+            장바구니가 비어 있습니다
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Looks like you haven't added anything to your cart yet.
+            아직 담은 상품이 없습니다.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Button asChild size="lg">
-              <Link href="/products">Continue Shopping</Link>
+              <Link href="/products">쇼핑 계속하기</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link href="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
+                홈으로
               </Link>
             </Button>
           </div>
@@ -101,10 +101,10 @@ export default function CartPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Shopping Cart
+          장바구니
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
+          장바구니에 담긴 상품 {totalItems}개
         </p>
       </div>
 
@@ -146,7 +146,7 @@ export default function CartPage() {
                   </p>
                   {item.product.stock < 10 && (
                     <Badge variant="destructive" className="mt-2">
-                      Only {item.product.stock} left in stock
+                      {item.product.stock}개 남음
                     </Badge>
                   )}
                 </div>
@@ -208,7 +208,7 @@ export default function CartPage() {
                     className="mt-2 text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="mr-1 h-4 w-4" />
-                    Remove
+                    삭제
                   </Button>
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function CartPage() {
             <Button asChild variant="outline">
               <Link href="/products">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Continue Shopping
+                쇼핑 계속하기
               </Link>
             </Button>
           </div>
@@ -230,7 +230,7 @@ export default function CartPage() {
         <div className="lg:col-span-1">
           <div className="rounded-lg border bg-gray-50 p-6">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Order Summary
+              주문 요약
             </h2>
 
             <div className="space-y-3">
@@ -286,10 +286,10 @@ export default function CartPage() {
 
           {/* Promo Code */}
           <div className="mt-6 rounded-lg border p-4">
-            <h3 className="mb-3 font-medium text-gray-900">Promo Code</h3>
+            <h3 className="mb-3 font-medium text-gray-900">할인 쿠폰</h3>
             <div className="flex space-x-2">
-              <Input placeholder="Enter promo code" className="flex-1" />
-              <Button variant="outline">Apply</Button>
+              <Input placeholder="쿠폰 코드를 입력하세요" className="flex-1" />
+              <Button variant="outline">적용</Button>
             </div>
           </div>
         </div>

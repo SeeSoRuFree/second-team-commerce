@@ -72,17 +72,17 @@ async function SearchResults({
       <div className="py-16 text-center">
         <Search className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
         <h2 className="mb-2 text-2xl font-semibold text-gray-900">
-          Start your search
+          검색을 시작하세요
         </h2>
         <p className="mb-6 text-muted-foreground">
-          Enter a keyword to find products that match your needs
+          찾으시는 상품의 키워드를 입력해 주세요
         </p>
         <div className="mx-auto max-w-md">
           <form action="/search" method="get">
             <div className="flex gap-2">
               <Input
                 name="q"
-                placeholder="Search for products..."
+                placeholder="상품 검색..."
                 className="flex-1"
                 autoFocus
               />
@@ -111,11 +111,10 @@ async function SearchResults({
       <div className="py-16 text-center">
         <Search className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
         <h2 className="mb-2 text-2xl font-semibold text-gray-900">
-          No results found
+          검색 결과가 없습니다
         </h2>
         <p className="mb-6 text-muted-foreground">
-          We couldn't find any products matching "{query}". Try adjusting your
-          search terms.
+          "{query}"에 해당하는 상품을 찾지 못했습니다. 검색어를 변경해 보세요.
         </p>
         <div className="space-y-4">
           <div className="mx-auto max-w-md">
@@ -123,7 +122,7 @@ async function SearchResults({
               <div className="flex gap-2">
                 <Input
                   name="q"
-                  placeholder="Try a different search..."
+                  placeholder="다른 검색어로 다시 검색..."
                   className="flex-1"
                   defaultValue={query}
                 />
@@ -134,7 +133,7 @@ async function SearchResults({
             </form>
           </div>
           <Button asChild variant="outline">
-            <Link href="/products">Browse All Products</Link>
+            <Link href="/products">전체 상품 보기</Link>
           </Button>
         </div>
       </div>
@@ -145,9 +144,9 @@ async function SearchResults({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {(page - 1) * 12 + 1}-
-          {Math.min(page * 12, result.pagination.total)} of{' '}
-          {result.pagination.total} results for "{query}"
+          "{query}" 검색 결과 {result.pagination.total}개 중{' '}
+          {(page - 1) * 12 + 1}-
+          {Math.min(page * 12, result.pagination.total)}개 표시
         </p>
         <SortSelect />
       </div>
@@ -165,7 +164,7 @@ async function SearchResults({
                   page: (page - 1).toString(),
                 })}`}
               >
-                Previous
+                이전
               </Link>
             </Button>
           )}
@@ -206,7 +205,7 @@ async function SearchResults({
                   page: (page + 1).toString(),
                 })}`}
               >
-                Next
+                다음
               </Link>
             </Button>
           )}
@@ -226,7 +225,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <div className="mb-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Search Products
+            상품 검색
           </h1>
         </div>
 
@@ -236,7 +235,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <div className="relative flex-1">
               <Input
                 name="q"
-                placeholder="Search for products..."
+                placeholder="상품 검색..."
                 defaultValue={query}
                 className="pr-10"
               />
@@ -265,7 +264,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             </div>
             <Button type="submit">
               <Search className="mr-2 h-4 w-4" />
-              Search
+              검색
             </Button>
           </div>
         </form>
@@ -278,7 +277,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="flex flex-wrap gap-2">
             {query && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Search: {query}
+                검색어: {query}
                 <Button
                   asChild
                   variant="ghost"
@@ -293,7 +292,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             )}
             {resolvedSearchParams.category && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Category: {resolvedSearchParams.category}
+                카테고리: {resolvedSearchParams.category}
                 <Button
                   asChild
                   variant="ghost"
@@ -314,7 +313,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             {(resolvedSearchParams.minPrice ||
               resolvedSearchParams.maxPrice) && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Price: ${resolvedSearchParams.minPrice || '0'} - $
+                가격: {resolvedSearchParams.minPrice || '0'} ~{' '}
                 {resolvedSearchParams.maxPrice || '∞'}
                 <Button
                   asChild

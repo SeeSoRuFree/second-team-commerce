@@ -44,6 +44,23 @@ function getStatusIcon(status: string) {
   }
 }
 
+function getStatusLabel(status: string) {
+  switch (status) {
+    case 'PENDING':
+      return '주문 접수';
+    case 'PROCESSING':
+      return '상품 준비중';
+    case 'SHIPPED':
+      return '배송중';
+    case 'DELIVERED':
+      return '배송완료';
+    case 'CANCELLED':
+      return '주문 취소';
+    default:
+      return status;
+  }
+}
+
 function getStatusColor(status: string) {
   switch (status) {
     case 'PENDING':
@@ -78,20 +95,20 @@ export default async function OrderDetailPage({
   }
 
   const statusSteps = [
-    { key: 'PENDING', label: 'Order Placed', completed: true },
+    { key: 'PENDING', label: '주문 접수', completed: true },
     {
       key: 'PROCESSING',
-      label: 'Processing',
+      label: '상품 준비중',
       completed: ['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status),
     },
     {
       key: 'SHIPPED',
-      label: 'Shipped',
+      label: '배송중',
       completed: ['SHIPPED', 'DELIVERED'].includes(order.status),
     },
     {
       key: 'DELIVERED',
-      label: 'Delivered',
+      label: '배송완료',
       completed: order.status === 'DELIVERED',
     },
   ];
@@ -103,23 +120,23 @@ export default async function OrderDetailPage({
         <Button asChild variant="ghost" className="mb-4">
           <Link href="/orders">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Orders
+            주문 목록으로
           </Link>
         </Button>
 
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Order #{order.orderNumber}
+              주문번호 {order.orderNumber}
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Placed on {formatDate(order.createdAt)}
+              주문일 {formatDate(order.createdAt)}
             </p>
           </div>
           <div className="flex items-center space-x-2">
             {getStatusIcon(order.status)}
             <Badge className={getStatusColor(order.status)}>
-              {order.status}
+              {getStatusLabel(order.status)}
             </Badge>
           </div>
         </div>
@@ -131,7 +148,7 @@ export default async function OrderDetailPage({
           {/* Order Progress */}
           <Card>
             <CardHeader>
-              <CardTitle>Order Status</CardTitle>
+              <CardTitle>배송 현황</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -168,7 +185,7 @@ export default async function OrderDetailPage({
 
               {order.trackingNumber && (
                 <div className="mt-6 rounded-lg bg-blue-50 p-4">
-                  <p className="font-medium text-blue-900">Tracking Number</p>
+                  <p className="font-medium text-blue-900">운송장 번호</p>
                   <p className="text-blue-700">{order.trackingNumber}</p>
                 </div>
               )}
@@ -178,7 +195,7 @@ export default async function OrderDetailPage({
           {/* Order Items */}
           <Card>
             <CardHeader>
-              <CardTitle>Items Ordered</CardTitle>
+              <CardTitle>주문 상품</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -207,13 +224,13 @@ export default async function OrderDetailPage({
                         SKU: {item.product.sku}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Quantity: {item.quantity}
+                        수량: {item.quantity}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">{formatPrice(item.price)}</p>
                       <p className="text-sm text-muted-foreground">
-                        Total: {formatPrice(Number(item.price) * item.quantity)}
+                        합계: {formatPrice(Number(item.price) * item.quantity)}
                       </p>
                     </div>
                   </div>
@@ -228,24 +245,26 @@ export default async function OrderDetailPage({
           {/* Payment & Shipping */}
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>주문 요약</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
+                <span>상품금액</span>
                 <span>{formatPrice(order.subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Shipping</span>
+                <span>배송비</span>
                 <span>{formatPrice(order.shipping)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Tax</span>
-                <span>{formatPrice(order.tax)}</span>
-              </div>
+              {Number(order.tax) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>부가세</span>
+                  <span>{formatPrice(order.tax)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between font-medium">
-                <span>Total</span>
+                <span>총 결제금액</span>
                 <span>{formatPrice(order.total)}</span>
               </div>
             </CardContent>
@@ -254,7 +273,7 @@ export default async function OrderDetailPage({
           {/* Shipping Address */}
           <Card>
             <CardHeader>
-              <CardTitle>Shipping Address</CardTitle>
+              <CardTitle>배송지</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
@@ -271,18 +290,18 @@ export default async function OrderDetailPage({
           {/* Actions */}
           <div className="space-y-3">
             {order.status === 'DELIVERED' && (
-              <Button className="w-full">Leave a Review</Button>
+              <Button className="w-full">리뷰 작성</Button>
             )}
             {['PENDING', 'PROCESSING'].includes(order.status) && (
               <Button variant="outline" className="w-full">
-                Cancel Order
+                주문 취소
               </Button>
             )}
             <Button variant="outline" className="w-full">
-              Contact Support
+              고객센터 문의
             </Button>
             <Button variant="outline" className="w-full">
-              Reorder Items
+              재주문
             </Button>
           </div>
         </div>

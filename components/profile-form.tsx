@@ -23,7 +23,7 @@ export function ProfileForm() {
         body: JSON.stringify(data),
       });
       if (response.ok) {
-        alert('Profile updated successfully');
+        alert('정보가 수정되었습니다');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -33,11 +33,11 @@ export function ProfileForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="name">Name</Label>
-        <Input {...register('name')} placeholder="Your name" />
+        <Label htmlFor="name">이름</Label>
+        <Input {...register('name')} placeholder="이름을 입력하세요" />
       </div>
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">이메일</Label>
         <Input
           {...register('email')}
           type="email"
@@ -45,10 +45,10 @@ export function ProfileForm() {
         />
       </div>
       <div>
-        <Label htmlFor="image">Image URL</Label>
+        <Label htmlFor="image">프로필 이미지 URL</Label>
         <Input {...register('image')} placeholder="https://..." />
       </div>
-      <Button type="submit">Update Profile</Button>
+      <Button type="submit">정보 수정</Button>
     </form>
   );
 }

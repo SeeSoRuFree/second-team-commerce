@@ -73,7 +73,7 @@ export function ProductCard({
           )}
           {!inStock && (
             <Badge variant="outline" className="bg-background/80 text-xs">
-              Out of Stock
+              품절
             </Badge>
           )}
         </div>
@@ -141,9 +141,9 @@ export function ProductCard({
 
         {/* Stock Status */}
         {inStock ? (
-          <p className="mt-1 text-xs text-green-600">In Stock</p>
+          <p className="mt-1 text-xs text-green-600">재고 있음</p>
         ) : (
-          <p className="mt-1 text-xs text-red-600">Out of Stock</p>
+          <p className="mt-1 text-xs text-red-600">품절</p>
         )}
       </CardContent>
     </Card>

@@ -22,14 +22,14 @@ export function SortSelect({
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Sort by" />
+        <SelectValue placeholder="정렬" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="newest">Newest</SelectItem>
-        <SelectItem value="price-low">Price: Low to High</SelectItem>
-        <SelectItem value="price-high">Price: High to Low</SelectItem>
-        <SelectItem value="popular">Most Popular</SelectItem>
-        <SelectItem value="rating">Top Rated</SelectItem>
+        <SelectItem value="newest">최신순</SelectItem>
+        <SelectItem value="price-low">낮은 가격순</SelectItem>
+        <SelectItem value="price-high">높은 가격순</SelectItem>
+        <SelectItem value="popular">인기순</SelectItem>
+        <SelectItem value="rating">평점순</SelectItem>
       </SelectContent>
     </Select>
   );

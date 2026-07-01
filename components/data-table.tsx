@@ -42,7 +42,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = '검색...',
   onRefresh,
   onExport,
   isLoading = false,
@@ -109,13 +109,13 @@ export function DataTable<TData, TValue>({
               <RefreshCw
                 className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
               />
-              Refresh
+              새로고침
             </Button>
           )}
           {onExport && (
             <Button variant="outline" size="sm" onClick={onExport}>
               <Download className="mr-2 h-4 w-4" />
-              Export
+              내보내기
             </Button>
           )}
         </div>
@@ -176,7 +176,7 @@ export function DataTable<TData, TValue>({
                 >
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <Filter className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-muted-foreground">No results found.</p>
+                    <p className="text-muted-foreground">결과가 없습니다.</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -190,15 +190,15 @@ export function DataTable<TData, TValue>({
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length > 0 && (
             <>
-              {table.getFilteredSelectedRowModel().rows.length} of{' '}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
+              전체 {table.getFilteredRowModel().rows.length}개 중{' '}
+              {table.getFilteredSelectedRowModel().rows.length}개 선택됨
             </>
           )}
         </div>
 
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
+            <p className="text-sm font-medium">페이지당 표시</p>
             <select
               className="h-8 w-[70px] rounded border border-input bg-background px-2 text-sm"
               value={table.getState().pagination.pageSize}
@@ -206,7 +206,7 @@ export function DataTable<TData, TValue>({
                 table.setPageSize(Number(e.target.value));
               }}
               aria-label="Select rows per page"
-              title="Select number of rows to display per page"
+              title="페이지당 표시할 행 수 선택"
             >
               {[10, 20, 30, 40, 50].map(pageSize => (
                 <option key={pageSize} value={pageSize}>
@@ -217,8 +217,8 @@ export function DataTable<TData, TValue>({
           </div>
 
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount()}
+            {table.getState().pagination.pageIndex + 1} /{' '}
+            {table.getPageCount()} 페이지
           </div>
 
           <div className="flex items-center space-x-2">
@@ -228,7 +228,7 @@ export function DataTable<TData, TValue>({
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              Previous
+              이전
             </Button>
             <Button
               variant="outline"
@@ -236,7 +236,7 @@ export function DataTable<TData, TValue>({
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              Next
+              다음
             </Button>
           </div>
         </div>

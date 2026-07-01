@@ -65,7 +65,7 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
         setCartItems(result.items);
       }
     } catch (error) {
-      toast.error('Failed to load cart items');
+      toast.error('장바구니를 불러오지 못했습니다');
     } finally {
       setIsLoading(false);
     }
@@ -92,11 +92,11 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
       if (!result.success) {
         // Revert on error
         loadCartItems();
-        toast.error(result.error || 'Failed to update quantity');
+        toast.error(result.error || '수량 변경에 실패했습니다');
       }
     } catch (error) {
       loadCartItems();
-      toast.error('Failed to update quantity');
+      toast.error('수량 변경에 실패했습니다');
     }
   };
 
@@ -113,13 +113,13 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
       if (!result.success) {
         // Revert on error
         loadCartItems();
-        toast.error(result.error || 'Failed to remove item');
+        toast.error(result.error || '상품 삭제에 실패했습니다');
       } else {
-        toast.success('Item removed from cart');
+        toast.success('장바구니에서 상품이 삭제되었습니다');
       }
     } catch (error) {
       loadCartItems();
-      toast.error('Failed to remove item');
+      toast.error('상품 삭제에 실패했습니다');
     }
   };
 
@@ -140,7 +140,7 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
           {itemCount > 99 ? '99+' : itemCount}
         </Badge>
       )}
-      <span className="sr-only">Open cart</span>
+      <span className="sr-only">장바구니 열기</span>
     </Button>
   );
 
@@ -152,7 +152,7 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            Shopping Cart ({itemCount})
+            장바구니 ({itemCount})
           </SheetTitle>
         </SheetHeader>
 
@@ -166,14 +166,14 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
               <ShoppingCart className="h-12 w-12 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold">Your cart is empty</h3>
+              <h3 className="font-semibold">장바구니가 비어 있습니다</h3>
               <p className="text-sm text-muted-foreground">
-                Start shopping to add items to your cart
+                쇼핑을 시작해 상품을 담아보세요
               </p>
             </div>
             <Button asChild>
               <Link href="/products" onClick={() => handleOpenChange(false)}>
-                Continue Shopping
+                쇼핑 계속하기
               </Link>
             </Button>
           </div>
@@ -260,14 +260,14 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
 
             <SheetFooter className="flex-col space-y-4 border-t pt-4">
               <div className="flex items-center justify-between text-lg font-semibold">
-                <span>Subtotal:</span>
+                <span>상품금액:</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
 
               <div className="flex flex-col space-y-2">
                 <Button asChild size="lg" className="w-full">
                   <Link href="/cart" onClick={() => handleOpenChange(false)}>
-                    View Cart
+                    장바구니 보기
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="w-full">
@@ -275,7 +275,7 @@ export function CartDrawer({ trigger, open, onOpenChange }: CartDrawerProps) {
                     href="/checkout"
                     onClick={() => handleOpenChange(false)}
                   >
-                    Checkout
+                    결제하기
                   </Link>
                 </Button>
               </div>
