@@ -2,16 +2,19 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { stripe, createCheckoutSession } from '@/lib/stripe';
 import { sendOrderConfirmation } from '@/lib/emails';
 import { checkoutSchema } from '@/lib/validators';
 import { getCurrentUser } from '@/lib/roles';
 import { revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { getCart, clearCart } from './cart';
 import { calculateShippingFee, generateOrderNumber } from '@/lib/utils';
+import { confirmTossPayment } from '@/lib/tosspayments';
 
-export async function createCheckout(formData: FormData) {
+/**
+ * 주문 생성 (PENDING) — 토스 결제위젯이 이 주문 정보로 결제를 요청한다.
+ * 결제 승인(confirmPayment)은 결제 성공 후 successUrl에서 별도로 호출된다.
+ */
+export async function createOrder(formData: FormData) {
   try {
     const checkoutData = {
       items: JSON.parse(formData.get('items') as string),
@@ -28,26 +31,20 @@ export async function createCheckout(formData: FormData) {
     const validatedData = checkoutSchema.parse(checkoutData);
     const user = await getCurrentUser();
 
-    // Verify cart items and calculate total
+    // 장바구니·재고 확인
     const cart = await getCart();
     if (cart.items.length === 0) {
-      return { success: false, error: 'Cart is empty' };
+      return { success: false, error: '장바구니가 비어 있습니다.' };
     }
 
-    // Check inventory for all items
     for (const item of validatedData.items) {
       const product = await prisma.product.findUnique({
         where: { id: item.productId },
-        include: {
-          inventory: true,
-        },
+        include: { inventory: true },
       });
 
       if (!product || product.status !== 'PUBLISHED') {
-        return {
-          success: false,
-          error: 'One or more products are unavailable',
-        };
+        return { success: false, error: '판매 중이 아닌 상품이 포함되어 있습니다.' };
       }
 
       const totalAvailable = product.inventory.reduce(
@@ -55,23 +52,22 @@ export async function createCheckout(formData: FormData) {
         0
       );
       if (totalAvailable < item.quantity) {
-        return {
-          success: false,
-          error: 'Insufficient inventory for one or more items',
-        };
+        return { success: false, error: '재고가 부족한 상품이 있습니다.' };
       }
     }
 
-    // 배송비 계산 (한국식 조건부 무료배송)
+    // 금액 계산 (한국식: 조건부 무료배송, 부가세는 상품가 포함)
     const subtotal = cart.total;
     const shippingCost = calculateShippingFee(subtotal);
-    // 한국은 부가세가 상품가에 포함 — 별도 세금 계산 없음
     const total = subtotal + shippingCost;
 
-    // Create pending order
+    // 토스 orderId — 영문/숫자 6~64자 (주문번호 재사용)
+    const tossOrderId = generateOrderNumber();
+
     const order = await prisma.order.create({
       data: {
-        orderNumber: generateOrderNumber(),
+        orderNumber: tossOrderId,
+        tossOrderId,
         userId: user?.id,
         status: 'PENDING',
         subtotal: Number(subtotal),
@@ -104,127 +100,93 @@ export async function createCheckout(formData: FormData) {
       },
       include: {
         orderItems: {
-          include: {
-            product: {
-              select: {
-                name: true,
-                images: true,
-              },
-            },
-          },
+          include: { product: { select: { name: true } } },
         },
-      },
-    });
-
-    // Create Stripe checkout session
-    const lineItems = order.orderItems.map(item => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.product.name,
-          images: item.product.images.slice(0, 1).map(img => img.url),
-        },
-        unit_amount: Math.round(Number(item.price) * 100),
-      },
-      quantity: item.quantity,
-    }));
-
-    // Add shipping as line item
-    if (shippingCost > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: '배송비',
-            images: [],
-          },
-          unit_amount: Math.round(Number(shippingCost) * 100),
-        },
-        quantity: 1,
-      });
-    }
-
-    // 한국은 부가세가 상품가에 포함 — 별도 세금 line item 없음 (tax = 0)
-
-    const session = await createCheckoutSession({
-      items: lineItems,
-      customer_email: validatedData.customerInfo.email,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/orders/${order.id}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
-      metadata: {
-        orderId: order.id,
-      },
-    });
-
-    // Update order with Stripe session ID
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        // TODO(2단계): 토스페이먼츠 연동 시 tossPaymentKey/tossOrderId로 대체
-        // stripeSessionId: session.id,
       },
     });
 
     revalidateTag('orders');
 
-    return { success: true, sessionId: session.id, url: session.url };
+    // 결제위젯에 넘길 주문 정보
+    const orderName =
+      order.orderItems.length > 1
+        ? `${order.orderItems[0]!.product.name} 외 ${order.orderItems.length - 1}건`
+        : order.orderItems[0]!.product.name;
+
+    return {
+      success: true,
+      orderId: order.id,
+      tossOrderId,
+      amount: Number(total),
+      orderName,
+      customerName: order.shippingName,
+      customerEmail: order.customerEmail,
+    };
   } catch (error) {
-    console.error('Create checkout error:', error);
-    return { success: false, error: 'Failed to create checkout session' };
+    console.error('주문 생성 오류:', error);
+    return { success: false, error: '주문 생성에 실패했습니다.' };
   }
 }
 
-export async function processSuccessfulPayment(sessionId: string) {
+/**
+ * 결제 승인 — 결제 성공 후 successUrl에서 넘어온 값으로 토스 승인을 요청하고,
+ * 주문 확정(CONFIRMED) + 재고 차감 + 장바구니 비우기 + 확인 메일을 처리한다.
+ */
+export async function confirmPayment(params: {
+  paymentKey: string;
+  tossOrderId: string;
+  amount: number;
+}) {
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['payment_intent'],
-    });
-
-    if (!session.metadata?.orderId) {
-      throw new Error('Order ID not found in session metadata');
-    }
-
-    const order = await prisma.order.findUnique({
-      where: { id: session.metadata.orderId },
+    // 주문 조회 (금액 위변조 검증)
+    const order = await prisma.order.findFirst({
+      where: { tossOrderId: params.tossOrderId },
       include: {
         orderItems: {
           include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                images: true,
-              },
-            },
+            product: { select: { id: true, name: true, images: true } },
           },
         },
       },
     });
 
     if (!order) {
-      throw new Error('Order not found');
+      return { success: false, error: '주문을 찾을 수 없습니다.' };
     }
 
-    // Update order status and payment info
+    // successUrl로 넘어온 금액과 주문 금액이 일치하는지 확인 (변조 방지)
+    if (Number(order.total) !== params.amount) {
+      return { success: false, error: '결제 금액이 일치하지 않습니다.' };
+    }
+
+    // 이미 결제 완료된 주문이면 중복 승인 방지
+    if (order.status !== 'PENDING') {
+      return { success: true, orderId: order.id, alreadyPaid: true };
+    }
+
+    // 토스 결제 승인
+    const payment = await confirmTossPayment({
+      paymentKey: params.paymentKey,
+      orderId: params.tossOrderId,
+      amount: params.amount,
+    });
+
+    // 주문 확정
     await prisma.order.update({
       where: { id: order.id },
       data: {
-        status: 'PROCESSING',
-        // TODO(2단계): 토스페이먼츠 연동 시 tossPaymentKey/tossOrderId로 대체
-        // stripePaymentIntentId:
-        //   typeof session.payment_intent === 'string'
-        //     ? session.payment_intent
-        //     : session.payment_intent?.id,
+        status: 'CONFIRMED',
+        tossPaymentKey: payment.paymentKey,
+        paymentMethod: payment.method,
         paidAt: new Date(),
       },
     });
 
-    // Update product inventory
+    // 재고 차감
     for (const item of order.orderItems) {
       const inventory = await prisma.inventory.findUnique({
         where: { productId: item.productId },
       });
-
       if (inventory) {
         await prisma.inventory.update({
           where: { productId: item.productId },
@@ -236,10 +198,10 @@ export async function processSuccessfulPayment(sessionId: string) {
       }
     }
 
-    // Clear user's cart
+    // 장바구니 비우기
     await clearCart();
 
-    // Send confirmation email
+    // 주문 확인 메일
     await sendOrderConfirmation({
       orderId: order.id,
       customerName: order.shippingName,
@@ -266,56 +228,21 @@ export async function processSuccessfulPayment(sessionId: string) {
     revalidateTag('orders');
     revalidateTag('products');
 
-    return { success: true, order };
+    return { success: true, orderId: order.id };
   } catch (error) {
-    console.error('Process successful payment error:', error);
-    return { success: false, error: 'Failed to process payment' };
+    console.error('결제 승인 오류:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '결제 승인에 실패했습니다.',
+    };
   }
-}
-
-export async function calculateShippingCost(
-  method: string,
-  address: any,
-  orderValue: number
-): Promise<number> {
-  // Simple shipping calculation - customize based on your needs
-  const shippingRates = {
-    standard: 5.99,
-    express: 12.99,
-    overnight: 24.99,
-    free: 0,
-  };
-
-  // Free shipping for orders over $75
-  if (orderValue >= 75) {
-    return 0;
-  }
-
-  return shippingRates[method as keyof typeof shippingRates] || 5.99;
-}
-
-export async function calculateTax(
-  subtotal: number,
-  state: string
-): Promise<number> {
-  // Simple tax calculation - customize based on your tax requirements
-  const taxRates: Record<string, number> = {
-    CA: 0.08,
-    NY: 0.08,
-    TX: 0.065,
-    FL: 0.06,
-    // Add more states as needed
-  };
-
-  const taxRate = taxRates[state] || 0;
-  return subtotal * taxRate;
 }
 
 export async function cancelOrder(orderId: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return { success: false, error: 'Authentication required' };
+      return { success: false, error: '로그인이 필요합니다.' };
     }
 
     const order = await prisma.order.findUnique({
@@ -324,24 +251,24 @@ export async function cancelOrder(orderId: string) {
     });
 
     if (!order) {
-      return { success: false, error: 'Order not found' };
+      return { success: false, error: '주문을 찾을 수 없습니다.' };
     }
 
     if (order.userId !== user.id) {
-      return { success: false, error: 'Unauthorized' };
+      return { success: false, error: '권한이 없습니다.' };
     }
 
-    if (!['PENDING', 'PROCESSING'].includes(order.status)) {
-      return { success: false, error: 'Order cannot be cancelled' };
+    // 배송 시작 전(입금대기/결제완료)까지만 취소 가능
+    if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
+      return { success: false, error: '배송이 시작되어 취소할 수 없습니다.' };
     }
 
-    // Restore inventory if order was already processed
-    if (order.status === 'PROCESSING') {
+    // 결제완료 상태였으면 차감된 재고 복구
+    if (order.status === 'CONFIRMED') {
       for (const item of order.orderItems) {
         const inventory = await prisma.inventory.findUnique({
           where: { productId: item.productId },
         });
-
         if (inventory) {
           await prisma.inventory.update({
             where: { productId: item.productId },
@@ -354,7 +281,6 @@ export async function cancelOrder(orderId: string) {
       }
     }
 
-    // Cancel order
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -368,30 +294,7 @@ export async function cancelOrder(orderId: string) {
 
     return { success: true };
   } catch (error) {
-    console.error('Cancel order error:', error);
-    return { success: false, error: 'Failed to cancel order' };
+    console.error('주문 취소 오류:', error);
+    return { success: false, error: '주문 취소에 실패했습니다.' };
   }
-}
-
-export async function getShippingMethods() {
-  return [
-    {
-      id: 'standard',
-      name: 'Standard Shipping',
-      description: '5-7 business days',
-      price: 5.99,
-    },
-    {
-      id: 'express',
-      name: 'Express Shipping',
-      description: '2-3 business days',
-      price: 12.99,
-    },
-    {
-      id: 'overnight',
-      name: 'Overnight Shipping',
-      description: '1 business day',
-      price: 24.99,
-    },
-  ];
 }

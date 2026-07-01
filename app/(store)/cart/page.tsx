@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, calculateShippingFee, FREE_SHIPPING_THRESHOLD } from '@/lib/utils';
 import { updateCartItem, removeFromCart } from '@/server/actions/cart';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
@@ -235,51 +235,51 @@ export default function CartPage() {
 
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span>Subtotal ({totalItems} items)</span>
+                <span>상품금액 ({totalItems}개)</span>
                 <span>{formatPrice(totalAmount)}</span>
               </div>
 
               <div className="flex justify-between text-sm">
-                <span>Shipping</span>
-                <span className="text-green-600">
-                  {totalAmount >= 100 ? 'FREE' : formatPrice(15)}
+                <span>배송비</span>
+                <span
+                  className={
+                    calculateShippingFee(totalAmount) === 0
+                      ? 'text-green-600'
+                      : ''
+                  }
+                >
+                  {calculateShippingFee(totalAmount) === 0
+                    ? '무료'
+                    : formatPrice(calculateShippingFee(totalAmount))}
                 </span>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <span>Tax</span>
-                <span>{formatPrice(totalAmount * 0.08)}</span>
               </div>
 
               <Separator />
 
               <div className="flex justify-between text-lg font-semibold">
-                <span>Total</span>
+                <span>총 결제금액</span>
                 <span>
-                  {formatPrice(
-                    totalAmount +
-                      (totalAmount >= 100 ? 0 : 15) +
-                      totalAmount * 0.08
-                  )}
+                  {formatPrice(totalAmount + calculateShippingFee(totalAmount))}
                 </span>
               </div>
             </div>
 
-            {totalAmount < 100 && (
+            {totalAmount < FREE_SHIPPING_THRESHOLD && (
               <div className="mt-4 rounded-md bg-blue-50 p-3">
                 <p className="text-sm text-blue-700">
-                  Add {formatPrice(100 - totalAmount)} more for free shipping!
+                  {formatPrice(FREE_SHIPPING_THRESHOLD - totalAmount)} 더 담으면
+                  무료배송! (5만원 이상 구매 시 무료배송)
                 </p>
               </div>
             )}
 
             <Button onClick={handleCheckout} className="mt-6 w-full" size="lg">
-              Proceed to Checkout
+              결제하기
             </Button>
 
             <div className="mt-4 text-center">
               <p className="text-xs text-muted-foreground">
-                Secure checkout with SSL encryption
+                SSL 보안 결제로 안전하게 진행됩니다
               </p>
             </div>
           </div>
