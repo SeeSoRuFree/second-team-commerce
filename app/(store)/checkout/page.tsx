@@ -49,6 +49,7 @@ export default function CheckoutPage() {
 
   // 위젯 상태
   const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
+  const initializedRef = useRef(false); // StrictMode 이중 실행 시 위젯 중복 렌더 방지
   const [widgetReady, setWidgetReady] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
 
@@ -59,11 +60,11 @@ export default function CheckoutPage() {
   // 장바구니가 비어 있으면 안내
   const isEmpty = items.length === 0;
 
-  // 결제 위젯 초기화 (1회)
+  // 결제 위젯 초기화 (1회) — StrictMode 이중 실행에도 위젯이 중복 렌더되지 않도록 가드
   useEffect(() => {
     if (isEmpty) return;
-
-    let cancelled = false;
+    if (initializedRef.current) return; // 이미 초기화됨 → 중복 방지
+    initializedRef.current = true;
 
     (async () => {
       try {
@@ -82,21 +83,17 @@ export default function CheckoutPage() {
           }),
         ]);
 
-        if (cancelled) return;
         widgetsRef.current = widgets;
         setWidgetReady(true);
       } catch (error) {
         console.error('결제 위젯 초기화 오류:', error);
+        initializedRef.current = false; // 실패 시 재시도 가능하도록 해제
         toast({
           title: '결제창을 불러오지 못했습니다',
           description: '잠시 후 다시 시도해 주세요.',
         });
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
     // 위젯은 최초 1회만 초기화. 금액 변경은 아래 effect에서 setAmount로 반영.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEmpty]);
