@@ -126,7 +126,7 @@ export async function middleware(request: NextRequest) {
     img-src 'self' blob: data: https:;
     media-src 'self' blob: data:;
     connect-src 'self' https://api.tosspayments.com https://js.tosspayments.com https://*.tosspayments.com https://t1.kakaocdn.net https://*.kakaocdn.net https://ssl.daumcdn.net https://*.daumcdn.net https://postcode.map.kakao.com https://postcode.map.daum.net https://*.kakao.com https://*.daum.net;
-    frame-src 'self' https://*.tosspayments.com https://js.tosspayments.com https://postcode.map.kakao.com https://postcode.map.daum.net https://*.kakao.com https://*.daum.net;
+    frame-src 'self' https://*.tosspayments.com https://js.tosspayments.com postcode.map.kakao.com postcode.map.daum.net *.kakao.com *.daum.net http://postcode.map.kakao.com http://postcode.map.daum.net;
     worker-src 'self' blob:;
   `
     .replace(/\s{2,}/g, ' ')
