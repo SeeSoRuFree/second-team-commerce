@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check if user has admin role
-    if (token.role !== 'admin') {
+    if (String(token.role).toLowerCase() !== 'admin') {
       // Redirect to access denied page or home
       return NextResponse.redirect(new URL('/access-denied', request.url));
     }
@@ -84,7 +84,7 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    if (token.role !== 'admin') {
+    if (String(token.role).toLowerCase() !== 'admin') {
       return new NextResponse(
         JSON.stringify({ error: 'Admin access required' }),
         {
@@ -115,15 +115,17 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Content Security Policy
+  // 토스페이먼츠(js.tosspayments.com / api.tosspayments.com / 결제창 iframe)
+  // + 다음(카카오) 우편번호 서비스(t1.daumcdn.net / *.daum.net) 허용
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.tosspayments.com https://t1.daumcdn.net https://*.daumcdn.net;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' blob: data: https:;
     media-src 'self' blob: data:;
-    connect-src 'self' https://api.stripe.com https://maps.googleapis.com;
-    frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
+    connect-src 'self' https://api.tosspayments.com https://js.tosspayments.com https://*.tosspayments.com https://t1.daumcdn.net https://*.daum.net https://*.daumcdn.net;
+    frame-src 'self' https://*.tosspayments.com https://js.tosspayments.com https://postcode.map.daum.net https://*.daum.net https://*.daumcdn.net;
     worker-src 'self' blob:;
   `
     .replace(/\s{2,}/g, ' ')
