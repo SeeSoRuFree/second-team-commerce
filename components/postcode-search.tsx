@@ -1,13 +1,12 @@
 // components/postcode-search.tsx
-// 카카오(다음) 우편번호 검색 — 공식 스크립트를 직접 로드해 embed 방식으로 삽입.
+// 카카오(다음) 우편번호 검색 — 공식 스크립트를 직접 로드해 open() 팝업(새 창) 방식으로 사용.
 // 무료·API 키 불필요. 공식 스크립트: //t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js
-// "주소 검색" 버튼 → 모달 안에 우편번호 검색 iframe을 embed, 선택 시 우편번호+도로명주소 콜백.
+// open() 방식은 별도 브라우저 창으로 떠서 iframe(CSP/X-Frame/Referrer) 제약을 우회한다.
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Script from 'next/script';
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const POSTCODE_SCRIPT_SRC =
@@ -24,10 +23,8 @@ declare global {
           jibunAddress: string;
           [key: string]: unknown;
         }) => void;
-        onclose?: () => void;
-        width?: string | number;
-        height?: string | number;
-      }) => { embed: (element: HTMLElement) => void };
+        onclose?: (state: string) => void;
+      }) => { open: () => void; embed: (el: HTMLElement) => void };
     };
   }
 }
@@ -43,27 +40,24 @@ export function PostcodeSearch({
   buttonLabel = '주소 검색',
   className,
 }: PostcodeSearchProps) {
-  const [open, setOpen] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
-  const embedRef = useRef<HTMLDivElement | null>(null);
 
-  // 모달이 열리고 스크립트가 준비되면 우편번호 검색 UI를 embed
+  // 스크립트가 이미 로드돼 있으면(다른 인스턴스가 로드) 바로 준비 완료 처리
   useEffect(() => {
-    if (!open || !scriptLoaded || !embedRef.current || !window.daum) return;
+    if (typeof window !== 'undefined' && window.daum?.Postcode) {
+      setScriptLoaded(true);
+    }
+  }, []);
 
-    // 재오픈 시 이전 iframe 정리
-    embedRef.current.innerHTML = '';
-
+  const handleClick = () => {
+    if (!window.daum?.Postcode) return;
     new window.daum.Postcode({
       oncomplete: data => {
         const address = data.roadAddress || data.jibunAddress;
         onComplete({ postcode: data.zonecode, address });
-        setOpen(false);
       },
-      width: '100%',
-      height: '100%',
-    }).embed(embedRef.current);
-  }, [open, scriptLoaded, onComplete]);
+    }).open();
+  };
 
   return (
     <>
@@ -74,47 +68,15 @@ export function PostcodeSearch({
         onLoad={() => setScriptLoaded(true)}
         onReady={() => setScriptLoaded(true)}
       />
-
       <Button
         type="button"
         variant="outline"
         className={className}
-        onClick={() => setOpen(true)}
+        onClick={handleClick}
+        disabled={!scriptLoaded}
       >
-        {buttonLabel}
+        {scriptLoaded ? buttonLabel : '불러오는 중...'}
       </Button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="relative flex h-[500px] w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow-xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b px-4 py-3">
-              <h3 className="text-sm font-semibold">주소 검색</h3>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="닫기"
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {/* 우편번호 검색 iframe이 이 div 안에 embed됨 */}
-            <div ref={embedRef} className="flex-1">
-              {!scriptLoaded && (
-                <div className="flex h-full items-center justify-center text-sm text-gray-400">
-                  주소 검색을 불러오는 중...
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

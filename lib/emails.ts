@@ -4,7 +4,30 @@ import { render } from '@react-email/render';
 import { OrderConfirmation } from '@/emails/OrderConfirmation';
 import { ResetPassword } from '@/emails/ResetPassword';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// 교육 베이스: 이메일은 선택 기능. RESEND_API_KEY가 없으면 발송을 조용히 스킵한다.
+// (모듈 로드 시점에 new Resend()가 throw하지 않도록 lazy 생성)
+let _resend: Resend | null = null;
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) return null;
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
+
+// resend.emails.send 를 대체 — 키 없으면 no-op(로그만)
+const resend = {
+  emails: {
+    send: async (payload: Parameters<Resend['emails']['send']>[0]) => {
+      const client = getResend();
+      if (!client) {
+        console.info('[emails] RESEND_API_KEY 미설정 — 메일 발송 스킵:', {
+          to: (payload as { to?: unknown })?.to,
+        });
+        return { skipped: true } as const;
+      }
+      return client.emails.send(payload);
+    },
+  },
+};
 
 export interface OrderEmailData {
   orderId: string;
