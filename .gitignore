@@ -129,3 +129,6 @@ temp/
 prisma/dev.db
 prisma/*.db
 *.db
+
+# theme-from-url 추출 산출물
+.theme-from-url/

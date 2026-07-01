@@ -55,15 +55,15 @@ export default function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
+      <section className="bg-primary relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
+            <h1 className="text-primary-foreground text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
               세컨팀 커머스에
               <span className="block text-yellow-300">오신 것을 환영합니다</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-200">
+            <p className="text-primary-foreground/80 mx-auto mt-6 max-w-2xl text-lg">
               최신 트렌드부터 스테디셀러까지, 합리적인 가격으로 만나는 다양한
               상품. 지금 바로 둘러보세요.
             </p>
@@ -71,7 +71,7 @@ export default function HomePage() {
               <Button
                 asChild
                 size="lg"
-                className="bg-white text-gray-900 hover:bg-gray-100"
+                className="bg-background text-foreground hover:bg-background/90"
               >
                 <Link href="/products">
                   지금 쇼핑하기
@@ -82,7 +82,7 @@ export default function HomePage() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-gray-900"
+                className="text-primary-foreground border-primary-foreground hover:bg-background hover:text-foreground"
               >
                 <Link href="/products">전체 상품 보기</Link>
               </Button>
@@ -92,29 +92,29 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-gray-50 py-16">
+      <section className="bg-muted py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
             <div className="text-center">
               <div className="flex justify-center">
-                <Users className="h-12 w-12 text-blue-600" />
+                <Users className="text-primary h-12 w-12" />
               </div>
-              <h3 className="mt-4 text-3xl font-bold text-gray-900">10K+</h3>
-              <p className="text-gray-600">만족한 고객</p>
+              <h3 className="text-foreground mt-4 text-3xl font-bold">10K+</h3>
+              <p className="text-muted-foreground">만족한 고객</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center">
-                <TrendingUp className="h-12 w-12 text-green-600" />
+                <TrendingUp className="text-primary h-12 w-12" />
               </div>
-              <h3 className="mt-4 text-3xl font-bold text-gray-900">500+</h3>
-              <p className="text-gray-600">판매 중인 상품</p>
+              <h3 className="text-foreground mt-4 text-3xl font-bold">500+</h3>
+              <p className="text-muted-foreground">판매 중인 상품</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center">
-                <Star className="h-12 w-12 text-yellow-600" />
+                <Star className="text-primary h-12 w-12" />
               </div>
-              <h3 className="mt-4 text-3xl font-bold text-gray-900">4.9/5</h3>
-              <p className="text-gray-600">평균 평점</p>
+              <h3 className="text-foreground mt-4 text-3xl font-bold">4.9/5</h3>
+              <p className="text-muted-foreground">평균 평점</p>
             </div>
           </div>
         </div>
@@ -124,10 +124,10 @@ export default function HomePage() {
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">
               추천 상품
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="text-muted-foreground mt-4 text-lg">
               가장 인기 있는 상품들을 엄선했습니다
             </p>
           </div>
@@ -148,13 +148,13 @@ export default function HomePage() {
       </section>
 
       {/* New Arrivals */}
-      <section className="bg-gray-50 py-16">
+      <section className="bg-muted py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">
               신상품
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="text-muted-foreground mt-4 text-lg">
               새롭게 입고된 최신 상품을 만나보세요
             </p>
           </div>
@@ -175,13 +175,13 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter */}
-      <section className="bg-gray-900 py-16">
+      <section className="bg-primary py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-primary-foreground text-3xl font-bold tracking-tight sm:text-4xl">
               소식 받아보기
             </h2>
-            <p className="mt-4 text-lg text-gray-300">
+            <p className="text-primary-foreground/80 mt-4 text-lg">
               뉴스레터를 구독하고 특별 할인과 신상품 소식을 가장 먼저
               받아보세요
             </p>
