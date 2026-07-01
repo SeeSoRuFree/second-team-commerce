@@ -3,18 +3,20 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Minus, Plus, ShoppingCart, Check } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, Check, CreditCard } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { addToCart } from '@/server/actions/cart';
+import { useCart } from '@/components/cart-provider';
 import type { ButtonProps } from '@/components/ui/button';
 
 interface AddToCartProps extends Omit<ButtonProps, 'onClick'> {
   productId: string;
   maxQuantity?: number;
   showQuantitySelector?: boolean;
+  showBuyNow?: boolean; // "바로 구매" 버튼 노출
   onAddToCart?: () => void;
 }
 
@@ -22,13 +24,17 @@ export function AddToCart({
   productId,
   maxQuantity = 10,
   showQuantitySelector = false,
+  showBuyNow = false,
   onAddToCart,
   disabled,
   children,
   ...props
 }: AddToCartProps) {
+  const router = useRouter();
+  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
   const handleQuantityChange = (newQuantity: number) => {
@@ -39,30 +45,36 @@ export function AddToCart({
 
   const handleAddToCart = async () => {
     setIsLoading(true);
-
     try {
-      const formData = new FormData();
-      formData.append('productId', productId);
-      formData.append('quantity', quantity.toString());
-
-      const result = await addToCart(formData);
-
-      if (result.success) {
-        toast.success(
-          `Added ${quantity} item${quantity > 1 ? 's' : ''} to cart`
-        );
+      const ok = await addItem(productId, quantity);
+      if (ok) {
+        toast.success(`장바구니에 ${quantity}개 담았습니다.`);
         setIsAdded(true);
         onAddToCart?.();
-
-        // Reset the success state after 2 seconds
         setTimeout(() => setIsAdded(false), 2000);
       } else {
-        toast.error(result.error || 'Failed to add item to cart');
+        toast.error('장바구니 담기에 실패했습니다. 로그인 후 다시 시도해 주세요.');
       }
-    } catch (error) {
-      toast.error('Something went wrong. Please try again.');
+    } catch {
+      toast.error('오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    setIsBuying(true);
+    try {
+      const ok = await addItem(productId, quantity);
+      if (ok) {
+        router.push('/checkout');
+      } else {
+        toast.error('구매를 진행할 수 없습니다. 로그인 후 다시 시도해 주세요.');
+        setIsBuying(false);
+      }
+    } catch {
+      toast.error('오류가 발생했습니다. 다시 시도해 주세요.');
+      setIsBuying(false);
     }
   };
 
@@ -70,7 +82,7 @@ export function AddToCart({
     return (
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="quantity">Quantity</Label>
+          <Label htmlFor="quantity">수량</Label>
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -87,9 +99,7 @@ export function AddToCart({
               min="1"
               max={maxQuantity}
               value={quantity}
-              onChange={e =>
-                handleQuantityChange(parseInt(e.target.value) || 1)
-              }
+              onChange={e => handleQuantityChange(parseInt(e.target.value) || 1)}
               disabled={disabled}
               className="h-8 w-16 text-center"
             />
@@ -104,33 +114,51 @@ export function AddToCart({
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            {maxQuantity > 0 ? `${maxQuantity} available` : 'Out of stock'}
+            {maxQuantity > 0 ? `재고 ${maxQuantity}개` : '품절'}
           </p>
         </div>
 
-        <Button
-          onClick={handleAddToCart}
-          disabled={disabled || isLoading || maxQuantity <= 0}
-          className="w-full"
-          {...props}
-        >
-          {isLoading ? (
-            <div className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              Adding to Cart...
-            </div>
-          ) : isAdded ? (
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4" />
-              Added to Cart
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Add to Cart
-            </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleAddToCart}
+            disabled={disabled || isLoading || isBuying || maxQuantity <= 0}
+            variant="outline"
+            className="flex-1"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                담는 중...
+              </span>
+            ) : isAdded ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" /> 담기 완료
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" /> 장바구니
+              </span>
+            )}
+          </Button>
+          {showBuyNow && (
+            <Button
+              onClick={handleBuyNow}
+              disabled={disabled || isLoading || isBuying || maxQuantity <= 0}
+              className="flex-1"
+            >
+              {isBuying ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  이동 중...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" /> 바로 구매
+                </span>
+              )}
+            </Button>
           )}
-        </Button>
+        </div>
       </div>
     );
   }
@@ -142,26 +170,26 @@ export function AddToCart({
       {...props}
     >
       {isLoading ? (
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          {props.size === 'sm' ? 'Adding...' : 'Adding to Cart...'}
-        </div>
+        <span className="flex items-center gap-2">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          {props.size === 'sm' ? '담는 중...' : '담는 중...'}
+        </span>
       ) : isAdded ? (
-        <div className="flex items-center gap-2">
+        <span className="flex items-center gap-2">
           <Check className="h-4 w-4" />
-          {props.size === 'sm' ? 'Added' : 'Added to Cart'}
-        </div>
+          {props.size === 'sm' ? '완료' : '담기 완료'}
+        </span>
       ) : (
-        <div className="flex items-center gap-2">
+        <span className="flex items-center gap-2">
           <ShoppingCart className="h-4 w-4" />
-          {children || (props.size === 'sm' ? 'Add to Cart' : 'Add to Cart')}
-        </div>
+          {children || '장바구니 담기'}
+        </span>
       )}
     </Button>
   );
 }
 
-// Quick add to cart button (minimal version)
+// 간단 담기 버튼 (아이콘)
 export function QuickAddToCart({
   productId,
   className,
@@ -177,7 +205,7 @@ export function QuickAddToCart({
       className={className}
     >
       <ShoppingCart className="h-4 w-4" />
-      <span className="sr-only">Add to cart</span>
+      <span className="sr-only">장바구니 담기</span>
     </AddToCart>
   );
 }

@@ -235,7 +235,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 )}
               </div>
 
-              <AddToCart productId={product.id} />
+              <AddToCart
+                productId={product.id}
+                showQuantitySelector
+                showBuyNow
+              />
 
               <div className="flex space-x-2">
                 <Button variant="outline" size="sm">
