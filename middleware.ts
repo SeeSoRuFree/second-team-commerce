@@ -116,16 +116,18 @@ export async function middleware(request: NextRequest) {
 
   // Content Security Policy
   // 토스페이먼츠(js.tosspayments.com / api.tosspayments.com / 결제창 iframe)
-  // + 다음(카카오) 우편번호 서비스(t1.daumcdn.net / *.daum.net) 허용
+  // + 카카오 우편번호 서비스:
+  //   스크립트 = https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js
+  //   iframe(우편번호 UI) = https://postcode.map.kakao.com
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.tosspayments.com https://t1.daumcdn.net https://*.daumcdn.net;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.tosspayments.com https://t1.kakaocdn.net https://*.kakaocdn.net;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' blob: data: https:;
     media-src 'self' blob: data:;
-    connect-src 'self' https://api.tosspayments.com https://js.tosspayments.com https://*.tosspayments.com https://t1.daumcdn.net https://*.daum.net https://*.daumcdn.net;
-    frame-src 'self' https://*.tosspayments.com https://js.tosspayments.com https://postcode.map.daum.net https://*.daum.net https://*.daumcdn.net;
+    connect-src 'self' https://api.tosspayments.com https://js.tosspayments.com https://*.tosspayments.com https://t1.kakaocdn.net https://*.kakaocdn.net https://postcode.map.kakao.com https://*.kakao.com;
+    frame-src 'self' https://*.tosspayments.com https://js.tosspayments.com https://postcode.map.kakao.com https://*.kakao.com https://*.daum.net;
     worker-src 'self' blob:;
   `
     .replace(/\s{2,}/g, ' ')
