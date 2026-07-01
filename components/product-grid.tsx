@@ -1,0 +1,156 @@
+// Location: components/product-grid.tsx
+
+import Link from 'next/link';
+import { ProductCard } from './product-card';
+
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  comparePrice?: number | null;
+  status: string;
+  images: Array<{ url: string; altText?: string | null }>;
+  category?: {
+    name: string;
+    slug: string;
+  } | null;
+  inventory?: Array<{
+    available: number;
+  }>;
+  reviews?: Array<{
+    rating: number;
+  }>;
+}
+
+interface ProductGridProps {
+  products: Product[];
+  className?: string;
+}
+
+export function ProductGrid({ products, className }: ProductGridProps) {
+  if (products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
+          <svg
+            className="h-12 w-12 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+          </svg>
+        </div>
+        <h3 className="mb-2 text-lg font-semibold">No products found</h3>
+        <p className="max-w-sm text-muted-foreground">
+          We couldn't find any products matching your criteria. Try adjusting
+          your filters or search terms.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${className || ''}`}
+    >
+      {products.map(product => {
+        // Calculate average rating
+        const avgRating =
+          product.reviews && product.reviews.length > 0
+            ? product.reviews.reduce((acc, review) => acc + review.rating, 0) /
+              product.reviews.length
+            : 0;
+
+        // Check stock availability
+        const inStock =
+          product.inventory &&
+          product.inventory.length > 0 &&
+          product.inventory[0]
+            ? product.inventory[0].available > 0
+            : true;
+
+        // Get primary image
+        const primaryImage =
+          product.images && product.images.length > 0 && product.images[0]
+            ? product.images[0].url
+            : undefined;
+
+        return (
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            name={product.name}
+            slug={product.slug}
+            price={product.price}
+            comparePrice={product.comparePrice}
+            image={primaryImage}
+            rating={avgRating}
+            reviewCount={product.reviews?.length || 0}
+            status={product.status}
+            category={product.category || undefined}
+            inStock={inStock}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+// Loading skeleton for product grid
+export function ProductGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="space-y-4">
+          <div className="aspect-square animate-pulse rounded-lg bg-muted" />
+          <div className="space-y-2">
+            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+            <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+            <div className="h-6 w-1/3 animate-pulse rounded bg-muted" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Featured products section
+export function FeaturedProducts({ products }: { products: Product[] }) {
+  const featuredProducts = products.slice(0, 4);
+
+  return (
+    <section className="py-12">
+      <div className="container">
+        <div className="mb-8 text-center">
+          <h2 className="mb-4 text-3xl font-bold tracking-tight">
+            Featured Products
+          </h2>
+          <p className="mx-auto max-w-2xl text-muted-foreground">
+            Discover our handpicked selection of the most popular and
+            highly-rated products.
+          </p>
+        </div>
+
+        <ProductGrid products={featuredProducts} />
+
+        {products.length > 4 && (
+          <div className="mt-8 text-center">
+            <Link
+              href="/products"
+              className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+            >
+              View All Products
+            </Link>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

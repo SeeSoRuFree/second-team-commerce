@@ -1,0 +1,301 @@
+// Location: prisma/schema.prisma  (SQLite 변환본 — 교육 베이스레포용)
+// 변경점: provider postgresql→sqlite / enum 3개 제거(String으로) / @db.Text·@db.Decimal 제거 / tags String[]→String
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// enum 제거 — SQLite 미지원. 값은 애플리케이션에서 문자열로 관리.
+//   UserRole:      "USER" | "ADMIN"
+//   OrderStatus:   "PENDING"|"CONFIRMED"|"PROCESSING"|"SHIPPED"|"DELIVERED"|"CANCELLED"|"REFUNDED"
+//   ProductStatus: "DRAFT" | "PUBLISHED" | "ARCHIVED"
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  password      String?
+  role          String    @default("USER")
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts Account[]
+  sessions Session[]
+  orders   Order[]
+  cart     Cart?
+  reviews   Review[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  parentId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryParent")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?
+  content     String?
+  price       Decimal
+  comparePrice Decimal?
+  costPrice   Decimal?
+  trackQuantity Boolean     @default(true)
+  status      String        @default("DRAFT")
+  weight      Decimal?
+  sku         String?       @unique
+  barcode     String?
+  tags        String        @default("")
+  seoTitle    String?
+  seoDescription String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  images     ProductImage[]
+  variants   ProductVariant[]
+  inventory  Inventory[]
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+  reviews    Review[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String
+  altText   String?
+  position  Int      @default(0)
+  productId String
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  name      String
+  value     String
+  price     Decimal?
+  position  Int      @default(0)
+  productId String
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
+}
+
+model Inventory {
+  id        String   @id @default(cuid())
+  quantity  Int      @default(0)
+  reserved  Int      @default(0)
+  available Int      @default(0)
+  productId String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("inventory")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int      @default(1)
+  cartId    String
+  productId String
+  variantId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId, variantId])
+  @@map("cart_items")
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  status        String      @default("PENDING")
+  subtotal      Decimal
+  tax           Decimal     @default(0)
+  shipping      Decimal     @default(0)
+  discount      Decimal     @default(0)
+  total         Decimal
+  currency      String      @default("USD")
+
+  // Customer Info
+  customerEmail String
+  customerPhone String?
+
+  // 배송지 (한국식: 수령인 + 우편번호 + 도로명주소 + 상세주소)
+  shippingName          String  // 수령인
+  shippingPostcode      String  // 우편번호
+  shippingAddress       String  // 도로명/지번 주소
+  shippingAddressDetail String? // 상세주소 (동/호수 등)
+
+  // 청구지 (배송지와 동일 시 생략)
+  billingName          String?
+  billingPostcode      String?
+  billingAddress       String?
+  billingAddressDetail String?
+
+  // 배송 상세
+  deliveryRequest String? // 배송 요청사항 (문 앞/경비실/부재 시 연락 등)
+  notes           String?
+
+  // 결제 정보 (토스페이먼츠)
+  tossPaymentKey String? // 토스 결제 건 고유키
+  tossOrderId    String? // 토스 주문 ID (가맹점 주문번호)
+  paymentMethod  String? // 결제수단 (카드/계좌이체/가상계좌/간편결제)
+  paidAt         DateTime?
+
+  // Tracking
+  trackingNumber String?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  cancelledAt    DateTime?
+
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user       User?       @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String?  @unique
+  sessionId String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  quantity    Int
+  price       Decimal
+  productName String
+  productSku  String?
+  orderId     String
+  productId   String
+  createdAt   DateTime @default(now())
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @default(5) // 1-5 stars
+  title     String?
+  content   String?
+  verified  Boolean  @default(false)
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+model Newsletter {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("newsletter_subscribers")
+}
