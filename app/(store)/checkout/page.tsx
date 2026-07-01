@@ -12,6 +12,7 @@ import {
   type TossPaymentsWidgets,
 } from '@tosspayments/tosspayments-sdk';
 import { useCart } from '@/components/cart-provider';
+import { PostcodeSearch } from '@/components/postcode-search';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -288,14 +289,20 @@ export default function CheckoutPage() {
                   <Input
                     id="postcode"
                     value={postcode}
-                    onChange={e => setPostcode(e.target.value)}
-                    placeholder="04524"
-                    className="max-w-[160px]"
+                    readOnly
+                    placeholder="주소 검색을 눌러주세요"
+                    className="max-w-[160px] bg-gray-50"
                   />
-                  {/* TODO: 카카오 우편번호 팝업 연동 (다음 단계) */}
-                  <Button type="button" variant="outline" disabled>
-                    주소 검색
-                  </Button>
+                  <PostcodeSearch
+                    onComplete={({ postcode, address }) => {
+                      setPostcode(postcode);
+                      setAddress(address);
+                      // 주소 선택 후 상세주소 입력으로 포커스 이동
+                      requestAnimationFrame(() =>
+                        document.getElementById('addressDetail')?.focus()
+                      );
+                    }}
+                  />
                 </div>
               </div>
 
@@ -304,8 +311,9 @@ export default function CheckoutPage() {
                 <Input
                   id="address"
                   value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  placeholder="서울시 중구 세종대로 110"
+                  readOnly
+                  placeholder="주소 검색으로 자동 입력됩니다"
+                  className="bg-gray-50"
                 />
               </div>
 
