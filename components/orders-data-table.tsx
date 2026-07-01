@@ -4,16 +4,29 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/data-table';
-import { formatCurrency } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
+import { orderStatusLabel, orderStatusColor } from '@/lib/order-status';
 
 export interface OrderItem {
   id: string;
   orderNumber: string;
   customer: string;
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  // DB 상태 key(영문 대문자) 유지 — 화면 표기는 orderStatusLabel로
+  status: string;
   date: string;
 }
+
+// 상태 뱃지 색상(tailwind 계열) → 실제 클래스 매핑
+const STATUS_BADGE_STYLES: Record<string, string> = {
+  yellow: 'bg-yellow-100 text-yellow-800',
+  blue: 'bg-blue-100 text-blue-800',
+  indigo: 'bg-indigo-100 text-indigo-800',
+  purple: 'bg-purple-100 text-purple-800',
+  green: 'bg-green-100 text-green-800',
+  red: 'bg-red-100 text-red-800',
+  gray: 'bg-gray-100 text-gray-800',
+};
 
 interface OrdersDataTableProps {
   data: OrderItem[];
@@ -24,38 +37,34 @@ export function OrdersDataTable({ data, isLoading }: OrdersDataTableProps) {
   const columns: ColumnDef<OrderItem>[] = [
     {
       accessorKey: 'orderNumber',
-      header: 'Order Number',
+      header: '주문번호',
     },
     {
       accessorKey: 'customer',
-      header: 'Customer',
+      header: '고객',
     },
     {
       accessorKey: 'date',
-      header: 'Date',
+      header: '주문일자',
     },
     {
       accessorKey: 'total',
-      header: 'Total',
-      cell: ({ row }) => formatCurrency(row.getValue('total')),
+      header: '금액',
+      cell: ({ row }) => formatPrice(row.getValue('total')),
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: '상태',
       cell: ({ row }) => {
         const value = row.getValue('status') as string;
-        const statusStyles = {
-          pending: 'bg-gray-100 text-gray-800',
-          processing: 'bg-blue-100 text-blue-800',
-          shipped: 'bg-purple-100 text-purple-800',
-          delivered: 'bg-green-100 text-green-800',
-          cancelled: 'bg-red-100 text-red-800',
-        };
+        const badgeStyle =
+          STATUS_BADGE_STYLES[orderStatusColor(value)] ??
+          STATUS_BADGE_STYLES.gray;
         return (
           <span
-            className={`rounded-full px-2 py-1 text-xs font-medium ${statusStyles[value as keyof typeof statusStyles]}`}
+            className={`rounded-full px-2 py-1 text-xs font-medium ${badgeStyle}`}
           >
-            {value}
+            {orderStatusLabel(value)}
           </span>
         );
       },
@@ -63,7 +72,7 @@ export function OrdersDataTable({ data, isLoading }: OrdersDataTableProps) {
   ];
 
   if (isLoading) {
-    return <div className="py-8 text-center">Loading orders...</div>;
+    return <div className="py-8 text-center">주문을 불러오는 중...</div>;
   }
 
   return <DataTable columns={columns} data={data} />;

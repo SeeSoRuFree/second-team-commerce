@@ -336,6 +336,37 @@ async function main() {
 
   console.log('⭐ 리뷰 샘플 생성');
 
+  // 상품 문의(Q&A) 샘플
+  const inquiryProducts = await prisma.product.findMany({ take: 2 });
+  if (inquiryProducts[0]) {
+    await prisma.inquiry.create({
+      data: {
+        title: '배송은 언제쯤 되나요?',
+        content: '오늘 주문하면 언제 받아볼 수 있을까요?',
+        isSecret: false,
+        status: 'ANSWERED',
+        answer: '평일 오후 2시 이전 주문 건은 당일 출고되어 1~2일 내 수령 가능합니다.',
+        answeredAt: new Date(),
+        userId: customer.id,
+        productId: inquiryProducts[0].id,
+      },
+    });
+  }
+  if (inquiryProducts[1]) {
+    await prisma.inquiry.create({
+      data: {
+        title: '재입고 문의드립니다',
+        content: '품절된 옵션 재입고 예정이 있나요?',
+        isSecret: false,
+        status: 'PENDING',
+        userId: customer.id,
+        productId: inquiryProducts[1].id,
+      },
+    });
+  }
+
+  console.log('❓ 문의 샘플 생성');
+
   // 장바구니 샘플
   const customerCart = await prisma.cart.upsert({
     where: { userId: customer.id },

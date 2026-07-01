@@ -18,20 +18,22 @@ import {
 export const dynamic = 'force-dynamic';
 import { formatPrice } from '@/lib/utils';
 
+interface AdminOrdersSearchParams {
+  search?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: string;
+}
+
 interface AdminOrdersPageProps {
-  searchParams: {
-    search?: string;
-    status?: string;
-    dateFrom?: string;
-    dateTo?: string;
-    page?: string;
-  };
+  searchParams: Promise<AdminOrdersSearchParams>;
 }
 
 async function OrdersList({
   searchParams,
 }: {
-  searchParams: AdminOrdersPageProps['searchParams'];
+  searchParams: AdminOrdersSearchParams;
 }) {
   const page = parseInt(searchParams.page || '1');
   const search = searchParams.search || '';
@@ -56,18 +58,17 @@ async function OrdersList({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {(page - 1) * 20 + 1}-
-          {Math.min(page * 20, result.pagination.total)} of{' '}
-          {result.pagination.total} orders
+          전체 {result.pagination.total}개 중 {(page - 1) * 20 + 1}-
+          {Math.min(page * 20, result.pagination.total)}개 표시
         </p>
         <div className="flex items-center space-x-2">
-          <Badge variant="outline">{result.pagination.total} total</Badge>
+          <Badge variant="outline">전체 {result.pagination.total}개</Badge>
           <Badge className="bg-yellow-100 text-yellow-800">
-            {result.orders.filter(o => o.status === 'PENDING').length} pending
+            입금대기 {result.orders.filter(o => o.status === 'PENDING').length}개
           </Badge>
           <Badge className="bg-blue-100 text-blue-800">
-            {result.orders.filter(o => o.status === 'PROCESSING').length}{' '}
-            processing
+            배송준비중{' '}
+            {result.orders.filter(o => o.status === 'PROCESSING').length}개
           </Badge>
         </div>
       </div>
@@ -76,10 +77,10 @@ async function OrdersList({
         data={result.orders.map((order: any) => ({
           id: order.id,
           orderNumber: order.orderNumber,
-          customer: order.user?.name || order.email || 'Unknown',
+          customer: order.user?.name || order.email || '비회원',
           total: Number(order.total),
-          status: order.status.toLowerCase().replace('_', ' ') as any,
-          date: new Date(order.createdAt).toLocaleDateString(),
+          status: order.status,
+          date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
         }))}
         isLoading={false}
       />
@@ -87,22 +88,23 @@ async function OrdersList({
   );
 }
 
-export default function AdminOrdersPage({
+export default async function AdminOrdersPage({
   searchParams,
 }: AdminOrdersPageProps) {
+  const resolvedSearchParams = await searchParams;
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <h1 className="text-3xl font-bold tracking-tight">주문 관리</h1>
           <p className="text-muted-foreground">
-            Manage customer orders and fulfillment
+            고객 주문과 배송 처리를 관리합니다
           </p>
         </div>
         <Button variant="outline">
           <Download className="mr-2 h-4 w-4" />
-          Export
+          내보내기
         </Button>
       </div>
 
@@ -111,23 +113,23 @@ export default function AdminOrdersPage({
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search orders..."
-            defaultValue={searchParams.search}
+            placeholder="주문번호/고객 검색..."
+            defaultValue={resolvedSearchParams.search}
             className="pl-9"
           />
         </div>
 
-        <Select defaultValue={searchParams.status}>
+        <Select defaultValue={resolvedSearchParams.status}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Status" />
+            <SelectValue placeholder="전체 상태" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="PROCESSING">Processing</SelectItem>
-            <SelectItem value="SHIPPED">Shipped</SelectItem>
-            <SelectItem value="DELIVERED">Delivered</SelectItem>
-            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            <SelectItem value="">전체 상태</SelectItem>
+            <SelectItem value="PENDING">입금대기</SelectItem>
+            <SelectItem value="PROCESSING">배송준비중</SelectItem>
+            <SelectItem value="SHIPPED">배송중</SelectItem>
+            <SelectItem value="DELIVERED">배송완료</SelectItem>
+            <SelectItem value="CANCELLED">취소</SelectItem>
           </SelectContent>
         </Select>
 
@@ -135,7 +137,7 @@ export default function AdminOrdersPage({
 
         <Button variant="outline" size="sm">
           <Filter className="mr-2 h-4 w-4" />
-          More Filters
+          상세 필터
         </Button>
       </div>
 
@@ -146,12 +148,12 @@ export default function AdminOrdersPage({
             <div className="p-8 text-center">
               <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Loading orders...
+                주문을 불러오는 중...
               </p>
             </div>
           }
         >
-          <OrdersList searchParams={searchParams} />
+          <OrdersList searchParams={resolvedSearchParams} />
         </Suspense>
       </div>
 
@@ -162,7 +164,7 @@ export default function AdminOrdersPage({
             <div className="mr-3 h-8 w-2 rounded bg-blue-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Total Orders
+                전체 주문
               </p>
               <p className="text-2xl font-bold">2,847</p>
             </div>
@@ -174,7 +176,7 @@ export default function AdminOrdersPage({
             <div className="mr-3 h-8 w-2 rounded bg-yellow-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Pending
+                입금대기
               </p>
               <p className="text-2xl font-bold">42</p>
             </div>
@@ -186,7 +188,7 @@ export default function AdminOrdersPage({
             <div className="mr-3 h-8 w-2 rounded bg-purple-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Processing
+                배송준비중
               </p>
               <p className="text-2xl font-bold">128</p>
             </div>
@@ -198,7 +200,7 @@ export default function AdminOrdersPage({
             <div className="mr-3 h-8 w-2 rounded bg-green-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Completed
+                배송완료
               </p>
               <p className="text-2xl font-bold">2,651</p>
             </div>
@@ -210,7 +212,7 @@ export default function AdminOrdersPage({
             <div className="mr-3 h-8 w-2 rounded bg-gray-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Revenue
+                매출
               </p>
               <p className="text-2xl font-bold">{formatPrice(284750)}</p>
             </div>

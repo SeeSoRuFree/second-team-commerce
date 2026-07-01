@@ -13,21 +13,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
+interface SearchQueryParams {
+  q?: string;
+  sort?: string;
+  category?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  page?: string;
+}
+
 interface SearchPageProps {
-  searchParams: {
-    q?: string;
-    sort?: string;
-    category?: string;
-    minPrice?: string;
-    maxPrice?: string;
-    page?: string;
-  };
+  searchParams: Promise<SearchQueryParams>;
 }
 
 export async function generateMetadata({
   searchParams,
 }: SearchPageProps): Promise<Metadata> {
-  const query = searchParams.q || '';
+  const resolvedSearchParams = await searchParams;
+  const query = resolvedSearchParams.q || '';
 
   if (!query) {
     return {
@@ -51,7 +54,7 @@ export async function generateMetadata({
 async function SearchResults({
   searchParams,
 }: {
-  searchParams: SearchPageProps['searchParams'];
+  searchParams: SearchQueryParams;
 }) {
   const query = searchParams.q || '';
   const page = parseInt(searchParams.page || '1');
@@ -213,8 +216,9 @@ async function SearchResults({
   );
 }
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
-  const query = searchParams.q || '';
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const query = resolvedSearchParams.q || '';
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -268,9 +272,9 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
 
         {/* Active Filters */}
         {(query ||
-          searchParams.category ||
-          searchParams.minPrice ||
-          searchParams.maxPrice) && (
+          resolvedSearchParams.category ||
+          resolvedSearchParams.minPrice ||
+          resolvedSearchParams.maxPrice) && (
           <div className="flex flex-wrap gap-2">
             {query && (
               <Badge variant="secondary" className="flex items-center gap-1">
@@ -287,9 +291,9 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
                 </Button>
               </Badge>
             )}
-            {searchParams.category && (
+            {resolvedSearchParams.category && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Category: {searchParams.category}
+                Category: {resolvedSearchParams.category}
                 <Button
                   asChild
                   variant="ghost"
@@ -298,7 +302,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
                 >
                   <Link
                     href={`/search?${new URLSearchParams({
-                      ...searchParams,
+                      ...resolvedSearchParams,
                       category: '',
                     })}`}
                   >
@@ -307,10 +311,11 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
                 </Button>
               </Badge>
             )}
-            {(searchParams.minPrice || searchParams.maxPrice) && (
+            {(resolvedSearchParams.minPrice ||
+              resolvedSearchParams.maxPrice) && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Price: ${searchParams.minPrice || '0'} - $
-                {searchParams.maxPrice || '∞'}
+                Price: ${resolvedSearchParams.minPrice || '0'} - $
+                {resolvedSearchParams.maxPrice || '∞'}
                 <Button
                   asChild
                   variant="ghost"
@@ -319,7 +324,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
                 >
                   <Link
                     href={`/search?${new URLSearchParams({
-                      ...searchParams,
+                      ...resolvedSearchParams,
                       minPrice: '',
                       maxPrice: '',
                     })}`}
@@ -342,7 +347,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
         {/* Main Content */}
         <main className="flex-1">
           <Suspense fallback={<ProductGridSkeleton />}>
-            <SearchResults searchParams={searchParams} />
+            <SearchResults searchParams={resolvedSearchParams} />
           </Suspense>
         </main>
       </div>

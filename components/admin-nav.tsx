@@ -9,15 +9,15 @@ import { cn } from '@/lib/utils';
 const adminNavItems = [
   {
     href: '/admin/products',
-    label: 'Products',
+    label: '상품 관리',
   },
   {
     href: '/admin/orders',
-    label: 'Orders',
+    label: '주문 관리',
   },
   {
     href: '/admin/inventory',
-    label: 'Inventory',
+    label: '재고 관리',
   },
 ];
 

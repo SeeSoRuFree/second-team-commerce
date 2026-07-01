@@ -13,6 +13,7 @@ import {
   Users,
   Settings,
   LogOut,
+  MessageCircle,
 } from 'lucide-react';
 
 export default async function AdminLayout({
@@ -28,7 +29,7 @@ export default async function AdminLayout({
       <div className="w-64 bg-white shadow-lg">
         <div className="p-6">
           <Link href="/admin" className="text-xl font-bold text-gray-900">
-            Admin Panel
+            관리자
           </Link>
         </div>
 
@@ -39,7 +40,7 @@ export default async function AdminLayout({
               className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               <LayoutDashboard className="mr-3 h-4 w-4" />
-              Dashboard
+              대시보드
             </Link>
 
             <Link
@@ -47,7 +48,7 @@ export default async function AdminLayout({
               className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               <Package className="mr-3 h-4 w-4" />
-              Products
+              상품 관리
             </Link>
 
             <Link
@@ -55,7 +56,7 @@ export default async function AdminLayout({
               className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               <ShoppingCart className="mr-3 h-4 w-4" />
-              Orders
+              주문 관리
             </Link>
 
             <Link
@@ -63,7 +64,15 @@ export default async function AdminLayout({
               className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               <Package className="mr-3 h-4 w-4" />
-              Inventory
+              재고 관리
+            </Link>
+
+            <Link
+              href="/admin/inquiries"
+              className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            >
+              <MessageCircle className="mr-3 h-4 w-4" />
+              문의 관리
             </Link>
 
             <Link
@@ -71,7 +80,7 @@ export default async function AdminLayout({
               className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               <Users className="mr-3 h-4 w-4" />
-              Customers
+              고객 관리
             </Link>
 
             <Link
@@ -79,7 +88,7 @@ export default async function AdminLayout({
               className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               <Settings className="mr-3 h-4 w-4" />
-              Settings
+              설정
             </Link>
           </div>
         </nav>
@@ -88,7 +97,7 @@ export default async function AdminLayout({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-700">
-                {user.name || 'Admin'}
+                {user.name || '관리자'}
               </p>
               <p className="text-xs text-gray-500">{user.email}</p>
             </div>

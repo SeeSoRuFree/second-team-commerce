@@ -14,16 +14,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatPrice, formatDate } from '@/lib/utils';
 
 interface OrderDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: OrderDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
   return {
-    title: `Order #${params.id}`,
+    title: `Order #${id}`,
     description: 'View your order details and tracking information.',
   };
 }
@@ -69,7 +70,8 @@ export default async function OrderDetailPage({
     redirect('/api/auth/signin');
   }
 
-  const order = await getOrderById(params.id);
+  const { id } = await params;
+  const order = await getOrderById(id);
 
   if (!order) {
     notFound();

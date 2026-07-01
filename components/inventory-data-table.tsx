@@ -26,7 +26,7 @@ export function InventoryDataTable({
   const columns: ColumnDef<InventoryItem>[] = [
     {
       accessorKey: 'name',
-      header: 'Product Name',
+      header: '상품명',
     },
     {
       accessorKey: 'sku',
@@ -34,15 +34,15 @@ export function InventoryDataTable({
     },
     {
       accessorKey: 'quantity',
-      header: 'Quantity',
+      header: '재고수량',
     },
     {
       accessorKey: 'reorderLevel',
-      header: 'Reorder Level',
+      header: '재주문 기준',
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: '상태',
       cell: ({ row }) => {
         const value = row.getValue('status') as string;
         const statusStyles = {
@@ -50,11 +50,16 @@ export function InventoryDataTable({
           'low-stock': 'bg-yellow-100 text-yellow-800',
           'out-of-stock': 'bg-red-100 text-red-800',
         };
+        const statusLabels = {
+          'in-stock': '재고 있음',
+          'low-stock': '재고 부족',
+          'out-of-stock': '품절',
+        };
         return (
           <span
             className={`rounded-full px-2 py-1 text-xs font-medium ${statusStyles[value as keyof typeof statusStyles]}`}
           >
-            {value.replace('-', ' ')}
+            {statusLabels[value as keyof typeof statusLabels] ?? value}
           </span>
         );
       },
@@ -62,7 +67,7 @@ export function InventoryDataTable({
   ];
 
   if (isLoading) {
-    return <div className="py-8 text-center">Loading inventory...</div>;
+    return <div className="py-8 text-center">재고를 불러오는 중...</div>;
   }
 
   return <DataTable columns={columns} data={data} />;

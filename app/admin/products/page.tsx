@@ -17,19 +17,21 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+interface AdminProductsSearchParams {
+  search?: string;
+  category?: string;
+  status?: string;
+  page?: string;
+}
+
 interface AdminProductsPageProps {
-  searchParams: {
-    search?: string;
-    category?: string;
-    status?: string;
-    page?: string;
-  };
+  searchParams: Promise<AdminProductsSearchParams>;
 }
 
 async function ProductsList({
   searchParams,
 }: {
-  searchParams: AdminProductsPageProps['searchParams'];
+  searchParams: AdminProductsSearchParams;
 }) {
   const page = parseInt(searchParams.page || '1');
   const search = searchParams.search || '';
@@ -49,18 +51,17 @@ async function ProductsList({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {(page - 1) * 20 + 1}-
-          {Math.min(page * 20, result.pagination.total)} of{' '}
-          {result.pagination.total} products
+          전체 {result.pagination.total}개 중 {(page - 1) * 20 + 1}-
+          {Math.min(page * 20, result.pagination.total)}개 표시
         </p>
         <div className="flex items-center space-x-2">
-          <Badge variant="outline">{result.pagination.total} total</Badge>
+          <Badge variant="outline">전체 {result.pagination.total}개</Badge>
           <Badge variant="secondary">
-            {result.products.filter(p => p.status === 'PUBLISHED').length}{' '}
-            published
+            판매중{' '}
+            {result.products.filter(p => p.status === 'PUBLISHED').length}개
           </Badge>
           <Badge variant="destructive">
-            {result.products.filter(p => p.status === 'DRAFT').length} draft
+            초안 {result.products.filter(p => p.status === 'DRAFT').length}개
           </Badge>
         </div>
       </div>
@@ -80,21 +81,24 @@ async function ProductsList({
   );
 }
 
-export default function AdminProductsPage({
+export default async function AdminProductsPage({
   searchParams,
 }: AdminProductsPageProps) {
+  const resolvedSearchParams = await searchParams;
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-          <p className="text-muted-foreground">Manage your product catalog</p>
+          <h1 className="text-3xl font-bold tracking-tight">상품 관리</h1>
+          <p className="text-muted-foreground">
+            상품 목록을 등록하고 관리합니다
+          </p>
         </div>
         <Button asChild>
           <Link href="/admin/products/new">
             <Plus className="mr-2 h-4 w-4" />
-            Add Product
+            상품 등록
           </Link>
         </Button>
       </div>
@@ -104,41 +108,41 @@ export default function AdminProductsPage({
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search products..."
-            defaultValue={searchParams.search}
+            placeholder="상품명 검색..."
+            defaultValue={resolvedSearchParams.search}
             className="pl-9"
           />
         </div>
 
-        <Select defaultValue={searchParams.category}>
+        <Select defaultValue={resolvedSearchParams.category}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Categories" />
+            <SelectValue placeholder="전체 카테고리" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
-            <SelectItem value="electronics">Electronics</SelectItem>
-            <SelectItem value="clothing">Clothing</SelectItem>
-            <SelectItem value="books">Books</SelectItem>
-            <SelectItem value="home">Home & Garden</SelectItem>
-            <SelectItem value="sports">Sports</SelectItem>
+            <SelectItem value="">전체 카테고리</SelectItem>
+            <SelectItem value="electronics">전자제품</SelectItem>
+            <SelectItem value="clothing">의류</SelectItem>
+            <SelectItem value="books">도서</SelectItem>
+            <SelectItem value="home">홈/리빙</SelectItem>
+            <SelectItem value="sports">스포츠</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select defaultValue={searchParams.status}>
+        <Select defaultValue={resolvedSearchParams.status}>
           <SelectTrigger className="w-32">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="상태" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
-            <SelectItem value="published">Published</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
+            <SelectItem value="">전체 상태</SelectItem>
+            <SelectItem value="published">판매중</SelectItem>
+            <SelectItem value="draft">초안</SelectItem>
+            <SelectItem value="archived">보관</SelectItem>
           </SelectContent>
         </Select>
 
         <Button variant="outline" size="sm">
           <Filter className="mr-2 h-4 w-4" />
-          More Filters
+          상세 필터
         </Button>
       </div>
 
@@ -149,12 +153,12 @@ export default function AdminProductsPage({
             <div className="p-8 text-center">
               <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Loading products...
+                상품을 불러오는 중...
               </p>
             </div>
           }
         >
-          <ProductsList searchParams={searchParams} />
+          <ProductsList searchParams={resolvedSearchParams} />
         </Suspense>
       </div>
 
@@ -165,7 +169,7 @@ export default function AdminProductsPage({
             <div className="mr-3 h-8 w-2 rounded bg-blue-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Total Products
+                전체 상품
               </p>
               <p className="text-2xl font-bold">1,234</p>
             </div>
@@ -177,7 +181,7 @@ export default function AdminProductsPage({
             <div className="mr-3 h-8 w-2 rounded bg-green-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Published
+                판매중
               </p>
               <p className="text-2xl font-bold">1,089</p>
             </div>
@@ -189,7 +193,7 @@ export default function AdminProductsPage({
             <div className="mr-3 h-8 w-2 rounded bg-yellow-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Low Stock
+                재고 부족
               </p>
               <p className="text-2xl font-bold">23</p>
             </div>
@@ -201,7 +205,7 @@ export default function AdminProductsPage({
             <div className="mr-3 h-8 w-2 rounded bg-red-500" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Out of Stock
+                품절
               </p>
               <p className="text-2xl font-bold">8</p>
             </div>

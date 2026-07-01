@@ -16,17 +16,22 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatPrice } from '@/lib/utils';
 import { JsonLd } from '@/components/jsonld';
+import { getProductReviews } from '@/server/actions/reviews';
+import { getProductInquiries } from '@/server/actions/inquiries';
+import { ProductReviews } from '@/components/product-reviews';
+import { ProductInquiries } from '@/components/product-inquiries';
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const product = await getProductBySlug(params.slug);
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     return {
@@ -58,7 +63,8 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductBySlug(params.slug);
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     notFound();
@@ -68,8 +74,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ? await getRelatedProducts(product.id, product.categoryId)
     : [];
 
-  const averageRating = 4.5; // This would come from reviews
-  const totalReviews = 128; // This would come from reviews
+  // 실제 리뷰·문의 데이터 조회
+  const { reviews, summary } = await getProductReviews(product.id);
+  const inquiries = await getProductInquiries(product.id);
+  const averageRating = summary.average;
+  const totalReviews = summary.count;
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -269,60 +278,79 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="mt-16">
           <Tabs defaultValue="description" className="w-full">
             <TabsList>
-              <TabsTrigger value="description">Description</TabsTrigger>
-              <TabsTrigger value="specifications">Specifications</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              <TabsTrigger value="shipping">Shipping & Returns</TabsTrigger>
+              <TabsTrigger value="description">상품설명</TabsTrigger>
+              <TabsTrigger value="reviews">
+                상품후기 ({totalReviews})
+              </TabsTrigger>
+              <TabsTrigger value="inquiries">
+                상품문의 ({inquiries.length})
+              </TabsTrigger>
+              <TabsTrigger value="shipping">배송/교환/반품</TabsTrigger>
             </TabsList>
 
             <TabsContent value="description" className="mt-8">
               <div className="prose max-w-none">
-                <p>{product.description}</p>
-                {/* Add more detailed description content here */}
+                <p>{product.content || product.description}</p>
               </div>
-            </TabsContent>
-
-            <TabsContent value="specifications" className="mt-8">
-              <div className="grid gap-4">
+              <div className="mt-8 grid gap-4">
                 <div className="grid grid-cols-2 gap-2 border-b py-2">
-                  <span className="font-medium">SKU</span>
+                  <span className="font-medium">상품코드</span>
                   <span>{product.sku}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 border-b py-2">
-                  <span className="font-medium">Category</span>
+                  <span className="font-medium">카테고리</span>
                   <span>{product.category?.name}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 border-b py-2">
-                  <span className="font-medium">Weight</span>
-                  <span>1.2 lbs</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 border-b py-2">
-                  <span className="font-medium">Dimensions</span>
-                  <span>10 × 8 × 2 in</span>
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="reviews" className="mt-8">
-              <div className="py-8 text-center">
-                <p className="text-muted-foreground">Reviews coming soon...</p>
-              </div>
+              <ProductReviews
+                productId={product.id}
+                reviews={reviews.map(r => ({
+                  id: r.id,
+                  rating: r.rating,
+                  title: r.title,
+                  content: r.content,
+                  verified: r.verified,
+                  userName: r.user.name,
+                  createdAt: r.createdAt.toISOString(),
+                }))}
+                summary={summary}
+              />
+            </TabsContent>
+
+            <TabsContent value="inquiries" className="mt-8">
+              <ProductInquiries
+                productId={product.id}
+                inquiries={inquiries.map(q => ({
+                  id: q.id,
+                  title: q.title,
+                  content: q.content,
+                  isSecret: q.isSecret,
+                  locked: q.locked,
+                  status: q.status,
+                  answer: q.answer,
+                  userName: q.user.name,
+                  createdAt: q.createdAt.toISOString(),
+                }))}
+              />
             </TabsContent>
 
             <TabsContent value="shipping" className="mt-8">
               <div className="prose max-w-none">
-                <h3>Shipping Information</h3>
+                <h3>배송 안내</h3>
                 <ul>
-                  <li>Free standard shipping on orders over $100</li>
-                  <li>Express shipping available for $15</li>
-                  <li>Orders typically process within 1-2 business days</li>
+                  <li>5만원 이상 구매 시 무료배송 (미만 시 배송비 3,000원)</li>
+                  <li>평일 오후 2시 이전 결제 완료 시 당일 출고</li>
+                  <li>택배 배송으로 보통 1~2일 내 수령</li>
                 </ul>
 
-                <h3>Return Policy</h3>
+                <h3>교환/반품 안내</h3>
                 <ul>
-                  <li>30-day return window</li>
-                  <li>Items must be in original condition</li>
-                  <li>Free return shipping for defective items</li>
+                  <li>상품 수령 후 7일 이내 교환·반품 신청 가능</li>
+                  <li>상품이 훼손되지 않은 원상태여야 합니다</li>
+                  <li>단순 변심 시 왕복 배송비는 고객 부담입니다</li>
                 </ul>
               </div>
             </TabsContent>
@@ -333,7 +361,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {relatedProducts.length > 0 && (
           <div className="mt-16">
             <h2 className="mb-8 text-2xl font-bold tracking-tight text-gray-900">
-              Related Products
+              함께 보면 좋은 상품
             </h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {relatedProducts.map(relatedProduct => (
