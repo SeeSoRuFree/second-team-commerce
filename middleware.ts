@@ -115,19 +115,18 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Content Security Policy
-  // 토스페이먼츠(js.tosspayments.com / api.tosspayments.com / 결제창 iframe)
-  // + 카카오 우편번호 서비스:
-  //   스크립트 = https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js
-  //   iframe(우편번호 UI) = https://postcode.map.kakao.com
+  // 토스페이먼츠: js.tosspayments.com(스크립트) / api.tosspayments.com(connect) / 결제창 iframe
+  // 카카오(다음) 우편번호: 스크립트는 kakaocdn/daumcdn, iframe(우편번호 UI)은
+  //   postcode.map.daum.net → postcode.map.kakao.com 로 302 리다이렉트되므로 둘 다 허용해야 함.
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.tosspayments.com https://t1.kakaocdn.net https://*.kakaocdn.net;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.tosspayments.com https://t1.kakaocdn.net https://*.kakaocdn.net https://ssl.daumcdn.net https://t1.daumcdn.net https://*.daumcdn.net;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' blob: data: https:;
     media-src 'self' blob: data:;
-    connect-src 'self' https://api.tosspayments.com https://js.tosspayments.com https://*.tosspayments.com https://t1.kakaocdn.net https://*.kakaocdn.net https://postcode.map.kakao.com https://*.kakao.com;
-    frame-src 'self' https://*.tosspayments.com https://js.tosspayments.com https://postcode.map.kakao.com https://*.kakao.com https://*.daum.net;
+    connect-src 'self' https://api.tosspayments.com https://js.tosspayments.com https://*.tosspayments.com https://t1.kakaocdn.net https://*.kakaocdn.net https://ssl.daumcdn.net https://*.daumcdn.net https://postcode.map.kakao.com https://postcode.map.daum.net https://*.kakao.com https://*.daum.net;
+    frame-src 'self' https://*.tosspayments.com https://js.tosspayments.com https://postcode.map.kakao.com https://postcode.map.daum.net https://*.kakao.com https://*.daum.net;
     worker-src 'self' blob:;
   `
     .replace(/\s{2,}/g, ' ')
