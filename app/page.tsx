@@ -13,12 +13,12 @@ import { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Home',
+  title: '홈',
   description:
-    'Discover amazing products at unbeatable prices. Shop the latest trends and bestsellers.',
+    '합리적인 가격의 다양한 상품을 만나보세요. 최신 트렌드와 베스트셀러를 세컨팀 커머스에서.',
   openGraph: {
-    title: 'NextJS E-commerce Store - Home',
-    description: 'Discover amazing products at unbeatable prices',
+    title: '세컨팀 커머스 - 홈',
+    description: '합리적인 가격의 다양한 상품을 만나보세요',
     type: 'website',
   },
 };
@@ -29,7 +29,7 @@ async function FeaturedProducts() {
   if (!products.length) {
     return (
       <div className="py-12 text-center">
-        <p className="text-muted-foreground">No featured products available.</p>
+        <p className="text-muted-foreground">추천 상품이 없습니다.</p>
       </div>
     );
   }
@@ -43,7 +43,7 @@ async function NewProducts() {
   if (!products.length) {
     return (
       <div className="py-12 text-center">
-        <p className="text-muted-foreground">No new products available.</p>
+        <p className="text-muted-foreground">신상품이 없습니다.</p>
       </div>
     );
   }
@@ -60,13 +60,12 @@ export default function HomePage() {
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
-              Welcome to Our
-              <span className="block text-yellow-300">Amazing Store</span>
+              세컨팀 커머스에
+              <span className="block text-yellow-300">오신 것을 환영합니다</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-200">
-              Discover incredible products at unbeatable prices. From the latest
-              trends to timeless classics, we have everything you need to
-              elevate your lifestyle.
+              최신 트렌드부터 스테디셀러까지, 합리적인 가격으로 만나는 다양한
+              상품. 지금 바로 둘러보세요.
             </p>
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Button
@@ -75,7 +74,7 @@ export default function HomePage() {
                 className="bg-white text-gray-900 hover:bg-gray-100"
               >
                 <Link href="/products">
-                  Shop Now
+                  지금 쇼핑하기
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -85,7 +84,7 @@ export default function HomePage() {
                 size="lg"
                 className="border-white text-white hover:bg-white hover:text-gray-900"
               >
-                <Link href="/category/featured">Browse Categories</Link>
+                <Link href="/products">전체 상품 보기</Link>
               </Button>
             </div>
           </div>
@@ -101,21 +100,21 @@ export default function HomePage() {
                 <Users className="h-12 w-12 text-blue-600" />
               </div>
               <h3 className="mt-4 text-3xl font-bold text-gray-900">10K+</h3>
-              <p className="text-gray-600">Happy Customers</p>
+              <p className="text-gray-600">만족한 고객</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center">
                 <TrendingUp className="h-12 w-12 text-green-600" />
               </div>
               <h3 className="mt-4 text-3xl font-bold text-gray-900">500+</h3>
-              <p className="text-gray-600">Products Available</p>
+              <p className="text-gray-600">판매 중인 상품</p>
             </div>
             <div className="text-center">
               <div className="flex justify-center">
                 <Star className="h-12 w-12 text-yellow-600" />
               </div>
               <h3 className="mt-4 text-3xl font-bold text-gray-900">4.9/5</h3>
-              <p className="text-gray-600">Average Rating</p>
+              <p className="text-gray-600">평균 평점</p>
             </div>
           </div>
         </div>
@@ -126,10 +125,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Featured Products
+              추천 상품
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Hand-picked selections from our best-selling items
+              가장 인기 있는 상품들을 엄선했습니다
             </p>
           </div>
           <div className="mt-12">
@@ -140,7 +139,7 @@ export default function HomePage() {
           <div className="mt-12 text-center">
             <Button asChild variant="outline" size="lg">
               <Link href="/products">
-                View All Products
+                전체 상품 보기
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -153,10 +152,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              New Arrivals
+              신상품
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Fresh finds and latest additions to our collection
+              새롭게 입고된 최신 상품을 만나보세요
             </p>
           </div>
           <div className="mt-12">
@@ -167,7 +166,7 @@ export default function HomePage() {
           <div className="mt-12 text-center">
             <Button asChild size="lg">
               <Link href="/products?sort=newest">
-                Shop New Arrivals
+                신상품 보러가기
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -180,11 +179,11 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Stay Updated
+              소식 받아보기
             </h2>
             <p className="mt-4 text-lg text-gray-300">
-              Subscribe to our newsletter for exclusive deals and new product
-              alerts
+              뉴스레터를 구독하고 특별 할인과 신상품 소식을 가장 먼저
+              받아보세요
             </p>
             <NewsletterForm />
           </div>
