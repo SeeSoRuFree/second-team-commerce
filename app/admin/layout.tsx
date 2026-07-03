@@ -76,6 +76,14 @@ export default async function AdminLayout({
             </Link>
 
             <Link
+              href="/admin/cs"
+              className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+            >
+              <MessageCircle className="mr-3 h-4 w-4" />
+              🤖 AI CS 데스크
+            </Link>
+
+            <Link
               href="/admin/customers"
               className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >

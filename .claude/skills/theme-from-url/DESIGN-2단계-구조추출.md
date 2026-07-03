@@ -1,84 +1,69 @@
-# theme-from-url 2단계 설계 — 페이지 구조 추출·적용
+# theme-from-url 2단계 설계 — 레이아웃 카피 (에이전트 재현 방식)
 
-> 1단계(색·radius 토큰 → CSS 변수 + 메인 하드코딩 색 치환)는 완료됨.
-> 이 문서는 **커머스 페이지의 레이아웃 구조까지** 참조 사이트를 따라가게 하는 2단계 설계다.
-> 사용자 확정 방향: **"섹션 구성·순서 참고"** 수준(픽셀 복제 아님).
+> 1단계(색·radius 토큰 → CSS 변수)는 완료됨.
+> 2단계는 참조 사이트의 **레이아웃을 거의 그대로 재현**하는 단계다.
+> 사용자 확정 방향(2026-07-01): "섹션 순서 참고"가 아니라 **"레이아웃 100% 카피"** 지향,
+> 접근 방식은 **스크린샷+DOM → 에이전트가 우리 React+Tailwind로 재현**.
 
-## 1. 문제 정의
-- dembrandt는 색·폰트·여백·radius "값"만 준다. "이 사이트가 히어로 다음에 무엇을
-  어떤 순서로 배치하는가" 같은 **페이지 구조/섹션 시퀀스**는 주지 않는다.
-- 커머스에서 사용자가 원하는 것: 참조 사이트의 **메인 섹션 구성·순서**와,
-  **상품 상세 페이지 레이아웃**이 메인과 **일관된 디자인 언어**를 갖는 것.
+## 0. 폐기된 접근 (규칙기반 분류기)
+초안은 DOM을 규칙으로 훑어 `hero/product-grid/newsletter`로 라벨링하는
+`extract-structure.mjs`였다. 중첩 깊은 현대 사이트에서 오탐이 심각
+(LG=전체 래퍼를 섹션 오탐, 무신사=SPA로 2섹션만)해서 **폐기**했다.
+교훈: "무엇을 어떤 순서로"의 판단은 규칙보다 **에이전트가 스크린샷을 보고** 하는 게
+훨씬 정확하다. 스크립트는 관찰만, 판단은 에이전트가.
 
-## 2. 산출물 목표
-`extract.mjs` 실행 시 `raw.json`(기존)에 더해 `structure.json` 생성:
+## 1. 역할 분리
+- **스크립트(`extract-layout.mjs`)** = 충실한 관찰. 라벨을 붙이지 않는다.
+  - 풀페이지 스크린샷(주 근거) + above-the-fold 스크린샷
+  - DOM 아웃라인 JSON(보조 근거): 섹션 후보의 기하·계산 스타일·내용 요약
+- **에이전트** = 판단·재현. 스크린샷을 Read로 열어 보고, dom-outline으로 교차검증하여
+  우리 컴포넌트로 재조립.
 
+## 2. 산출물 (`.theme-from-url/layout/`)
+| 파일 | 용도 |
+|---|---|
+| `screenshot.png` | 풀페이지 세로 전체 — 재현의 **주 근거** |
+| `screenshot-fold.png` | 첫 화면 — 히어로 판단 |
+| `dom-outline.json` | 섹션 후보 노드별 골격·스타일·내용 — **보조 근거** |
+| `meta.json` | 요약(섹션 수·viewport) |
+
+`dom-outline.json` 노드 스키마(요지):
 ```jsonc
 {
-  "main": {
-    "sections": [
-      { "type": "hero",         "height": "full",  "hasCta": true },
-      { "type": "category-nav", "cols": 6 },
-      { "type": "product-grid", "cols": 4, "title": true },
-      { "type": "promo-banner", "aspect": "wide" },
-      { "type": "product-grid", "cols": 4, "title": true },
-      { "type": "newsletter" }
-    ]
-  }
+  "tag": "section", "class": "...", "depth": 2,
+  "box": { "w": 1440, "h": 620, "vhRatio": 0.69 },   // vhRatio: viewport 높이 대비
+  "layout": { "display": "grid", "gridCols": 4, "gap": "24px", "padding": "...",
+              "maxWidth": "1200px", "textAlign": "center" },
+  "style": { "bg": "...", "bgImage": "yes", "color": "...", "fontSize": "...", "fontWeight": "..." },
+  "content": { "headings": ["추천 상품"], "repeatedChild": { "tag": "div", "count": 8 },
+               "imgCount": 8, "btnCount": 8, "hasForm": false, "text": "..." }
 }
 ```
-- `type` 분류 셋(최소): `hero | category-nav | product-grid | promo-banner | newsletter | cta | feature-row`
-- 각 섹션의 판별 힌트: 자식 요소 패턴(이미지 그리드 수, 반복 카드 수), 높이 비율, 텍스트/버튼 밀도.
+- `repeatedChild.count ≥ 3` = 카드 그리드/캐러셀 힌트.
+- `vhRatio ≥ 0.7` + `content.imgCount` 큼 + 상단 = 히어로 후보.
+- `hasForm` = 뉴스레터/검색 후보.
+- 뷰포트 3배 초과 블록(전체 래퍼)은 스크립트가 노이즈로 제외(의미태그만 보존).
 
-## 3. 추출 방식 (dembrandt 재사용 + 우리 분석 레이어)
-- extract 단계에서 Playwright로 **이미 페이지를 열고 있으므로**, 같은 `page` 객체에
-  `page.evaluate()`로 DOM 구조 분석 스크립트를 추가 주입한다. (별도 브라우저 기동 불필요)
-- 분석 스크립트 로직:
-  1. `body` 직계~2depth에서 full-width 블록(섹션 후보)을 수집(`<section>`, 큰 `<div>`).
-  2. 각 후보의 지표 추출: viewport 대비 높이, 반복 자식 수(카드 그리드 감지),
-     이미지:텍스트 비율, 버튼 수, `<form>`/input 유무(뉴스레터·검색 감지).
-  3. 규칙 기반 분류기로 `type` 라벨링(임계값은 상수로, 튜닝 가능하게).
-- **주의**: 동적 렌더링/무한스크롤 사이트는 첫 뷰포트만 잡힐 수 있음 → `structure.json`에
-  `confidence`와 `note`를 달아 저신호를 표시(1단계 경고 게이트와 동일 철학).
+## 3. 재현 절차 (에이전트가 수행)
+1. `screenshot.png`를 Read로 열어 위→아래 섹션 시퀀스를 파악.
+2. dom-outline로 각 섹션의 그리드 열수·정렬·간격·배경을 정량 확인.
+3. 우리 `app/page.tsx`의 섹션 컴포넌트로 매핑·재배치. 없는 섹션은 참조에 있을 때만 신설.
+4. Tailwind로 간격/그리드/정렬/배경 맞춤. 색·radius는 1단계 토큰 변수로 표현.
+5. 텍스트·이미지·로고는 우리 것/자리표시자(참조 자산 복사 금지).
 
-## 4. 적용 방식 — "섹션 구성·순서 참고"
-픽셀 복제가 아니라 **우리 기존 섹션 컴포넌트를 참조 순서로 재배치**한다.
+## 4. 안전장치 (1단계 철학 계승)
+- **미리보기 우선**: 재조립 diff를 먼저 보여주고 `--write` 없이 `page.tsx` 미수정.
+- **백업**: 수정 전 `app/page.tsx.bak`.
+- **불변식**: 참조 섹션 N개인데 재현 0개면 중단.
+- **저신호 게이트**: 스크린샷이 거의 비었거나(동적/로그인월) 섹션 후보 ≤2면 경고 후 범위 축소.
+- **생성 금지 원칙**: 참조에 없는 섹션을 임의 생성하지 않음.
 
-- 우리 메인은 이미 섹션 컴포넌트 조립 구조(`app/page.tsx`):
-  `Hero → Stats → FeaturedProducts → NewArrivals → Newsletter`.
-- 매핑 테이블(참조 type → 우리 컴포넌트):
-  | 참조 type | 우리 컴포넌트 |
-  |---|---|
-  | hero | `<Hero/>` 섹션 |
-  | product-grid | `<ProductGrid/>` 섹션(추천/신상품 재사용) |
-  | promo-banner | 신규 `<PromoBanner/>` (없으면 생략 or 플레이스홀더) |
-  | newsletter | `<NewsletterForm/>` 섹션 |
-  | category-nav | 신규 `<CategoryNav/>` |
-- 재배치 산출물: `app/page.tsx`의 섹션 순서를 `structure.json.main.sections` 순서로
-  재조립. **없는 섹션은 건너뛰고, 우리에 없는 type은 생성하지 않고 로그로 알림**(과잉구현 금지).
+## 5. 검증 방법
+- LG/무신사 등으로 `extract-layout` → 스크린샷·outline 산출 확인(✅ LG 검증됨).
+- 재현 후 우리 메인을 `npm run dev`로 띄워 참조 스크린샷과 나란히 비교.
+- tsc 0 + 프로덕션 빌드 성공 유지.
 
-### 상품 상세 일관성
-- 상세(`app/(store)/products/[slug]/page.tsx`)는 구조를 통째로 바꾸지 않고,
-  **메인과 같은 토큰(색·radius·간격 스케일)**을 쓰는지 점검·정렬하는 수준.
-- 상세 고유 레이아웃(이미지 갤러리 좌 / 정보·구매박스 우 / 하단 리뷰)은 유지.
-  참조 사이트 상세를 크롤링해 좌우 배치·구매박스 sticky 여부 정도만 옵션으로 반영.
-
-## 5. 안전장치 (1단계 철학 계승)
-- **미리보기 우선**: 재배치 diff를 먼저 출력, `--write` 없이는 `page.tsx` 미수정.
-- **백업**: 수정 전 `app/page.tsx.bak` 생성.
-- **불변식**: 참조에 섹션이 N개 잡혔는데 매핑 결과 0개면 중단(구조 유실 방지).
-- **저신호 게이트**: 섹션 1개 이하만 잡히면(동적 사이트) 경고 후 `--force` 요구.
-- **생성 금지 원칙**: 우리에 없는 섹션 컴포넌트를 임의 생성하지 않음. 필요 시 사용자에게 물음.
-
-## 6. 구현 단계 제안
-1. `scripts/extract-structure.mjs` (또는 extract.mjs에 `--with-structure` 플래그) — DOM 분석 → `structure.json`.
-2. 규칙 기반 섹션 분류기 + 임계값 상수 + 유닛 테스트(합성 DOM 스냅샷 몇 개).
-3. `scripts/apply-structure.mjs` — `structure.json` → `page.tsx` 섹션 재조립(미리보기/‑‑write).
-4. 매핑 테이블·미보유 섹션 처리 규칙을 SKILL.md에 문서화.
-5. 검증: LG/무신사 각각으로 추출→재배치→메인 스크린샷 비교.
-
-## 7. 리스크·미결
-- 섹션 분류 정확도가 규칙 기반이라 사이트별 편차 큼 → 임계값 튜닝 필요, 저신호 표시로 방어.
-- `page.tsx` 코드 재조립은 문자열 조작보다 **AST(예: 섹션 마커 주석 기반 블록 스왑)**가 안전할 수 있음 → 구현 시 재검토.
-- 교육 베이스레포 특성상 **과잉구현 경계**: "섹션 순서 재배치 + 토큰 일관성"까지가 적정선.
-  픽셀 복제·신규 섹션 대량 생성은 범위 밖.
+## 6. 남은 리스크
+- 로그인월/무한스크롤 사이트는 첫 관찰이 부분적일 수 있음 → 스크린샷 우선·범위 축소로 방어.
+- 상품 상세 등 타 페이지는 구조 통째 변경이 아니라 **토큰 일관성**만 맞춤(범위 밖 과잉구현 금지).
+- 교육 베이스레포 특성상 "레이아웃 재현 + 우리 데이터·자산"이 적정선. 자산 복제·픽셀 완전복제는 범위 밖.

@@ -18,6 +18,7 @@ import { formatPrice } from '@/lib/utils';
 import { JsonLd } from '@/components/jsonld';
 import { getProductReviews } from '@/server/actions/reviews';
 import { getProductInquiries } from '@/server/actions/inquiries';
+import { AiChat } from '@/components/product/ai-chat';
 import { ProductReviews } from '@/components/product-reviews';
 import { ProductInquiries } from '@/components/product-inquiries';
 
@@ -289,6 +290,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 상품문의 ({inquiries.length})
               </TabsTrigger>
               <TabsTrigger value="shipping">배송/교환/반품</TabsTrigger>
+              <TabsTrigger value="ai-chat">AI 상담</TabsTrigger>
             </TabsList>
 
             <TabsContent value="description" className="mt-8">
@@ -356,6 +358,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   <li>단순 변심 시 왕복 배송비는 고객 부담입니다</li>
                 </ul>
               </div>
+            </TabsContent>
+
+            <TabsContent value="ai-chat" className="mt-8">
+              <AiChat productSlug={product.slug} />
             </TabsContent>
           </Tabs>
         </div>
